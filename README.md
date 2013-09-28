@@ -44,12 +44,17 @@ Problems
 * It doesn't have any unit tests yet, because it's very, very new and I'm
   still experimenting with its architecture.
 
-* Probably plenty of other things. Did I mention it's very new?
+* Probably tons of other things. Did I mention it's very new and experimental?
 
 Installing
 ----------
 
-Don't install it yet. It's not finished.
+```
+gem install crass
+```
+
+...but only if you're brave. Seriously, this thing will almost certainly kill
+your family and poop on your pets.
 
 Examples
 --------
@@ -137,7 +142,7 @@ Wasn't that exciting?
 License
 -------
 
-Copyright (c) 2013 Ryan Grove <ryan@wonko.com>
+Copyright (c) 2013 Ryan Grove (ryan@wonko.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the ‘Software’), to deal in
