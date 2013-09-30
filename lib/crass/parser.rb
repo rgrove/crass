@@ -28,7 +28,7 @@ module Crass
       rules.map do |rule|
         case rule[:node]
         # TODO: handle at-rules
-        when :qualified_rule then parser.parse_style_rule(rule)
+        when :qualified_rule then parser.create_style_rule(rule)
         else rule
         end
       end
@@ -96,24 +96,25 @@ module Crass
       rule = {:prelude => []}
 
       rule[:tokens] = tokens.collect do
-        while token = tokens.consume
+        while token = input.consume
           case token[:node]
           when :comment then next
           when :semicolon, :eof then break
 
           when :'{' then
-            rule[:block] = consume_simple_block(tokens)
+            rule[:block] = consume_simple_block(input)
             break
 
-          # TODO: At this point, the spec says we should check for a "simple block
-          # with an associated token of <<{-token>>", but isn't that exactly what
-          # we just did above? And the tokenizer only ever produces standalone
-          # <<{-token>>s, so how could the token stream ever contain one that's
-          # already associated with a simple block? What am I missing?
+          # TODO: At this point, the spec says we should check for a "simple
+          # block with an associated token of <<{-token>>", but isn't that
+          # exactly what we just did above? And the tokenizer only ever produces
+          # standalone <<{-token>>s, so how could the token stream ever contain
+          # one that's already associated with a simple block? What am I
+          # missing?
 
           else
-            tokens.reconsume
-            rule[:prelude] << consume_component_value(tokens)
+            input.reconsume
+            rule[:prelude] << consume_component_value(input)
           end
         end
       end
@@ -124,12 +125,12 @@ module Crass
     # Consumes a component value and returns it.
     #
     # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-component-value0
-    def consume_component_value(tokens = @tokens)
-      return nil unless token = tokens.consume
+    def consume_component_value(input = @tokens)
+      return nil unless token = input.consume
 
       case token[:node]
-      when :'{', :'[', :'(' then consume_simple_block(tokens)
-      when :function then consume_function(tokens)
+      when :'{', :'[', :'(' then consume_simple_block(input)
+      when :function then consume_function(input)
       else token
       end
     end
@@ -137,19 +138,19 @@ module Crass
     # Consumes a declaration and returns it, or `nil` on parse error.
     #
     # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-declaration0
-    def consume_declaration(tokens = @tokens)
+    def consume_declaration(input = @tokens)
       declaration = {}
 
-      declaration[:tokens] = tokens.collect do
-        declaration[:name] = tokens.consume[:value]
+      declaration[:tokens] = input.collect do
+        declaration[:name] = input.consume[:value]
 
         value = []
-        token = tokens.consume
-        token = tokens.consume while token[:node] == :whitespace
+        token = input.consume
+        token = input.consume while token[:node] == :whitespace
 
         return nil if token[:node] != :colon # TODO: parse error
 
-        value << token while token = tokens.consume
+        value << token while token = input.consume
         declaration[:value] = value
 
         maybe_important = value.reject {|v| v[:node] == :whitespace }[-2, 2]
@@ -173,10 +174,10 @@ module Crass
     # `:whitespace` nodes, which is non-standard.
     #
     # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-list-of-declarations0
-    def consume_declarations(tokens = @tokens)
+    def consume_declarations(input = @tokens)
       declarations = []
 
-      while token = tokens.consume
+      while token = input.consume
         case token[:node]
         when :comment, :semicolon, :whitespace
           declarations << token
@@ -184,16 +185,19 @@ module Crass
         when :at_keyword
           # TODO: this is technically a parse error when parsing a style rule,
           # but not necessarily at other times.
-          declarations << consume_at_rule(tokens)
+
+          # TODO: It seems like we should reconsume the current token here,
+          # since that's what happens when consuming a list of rules.
+          declarations << consume_at_rule(input)
 
         when :ident
           decl_tokens = [token]
-          tokens.consume
+          input.consume
 
-          while tokens.current
-            decl_tokens << tokens.current
-            break if tokens.current[:node] == :semicolon
-            tokens.consume
+          while input.current
+            decl_tokens << input.current
+            break if input.current[:node] == :semicolon
+            input.consume
           end
 
           if decl = consume_declaration(TokenScanner.new(decl_tokens))
@@ -203,7 +207,7 @@ module Crass
         else
           # TODO: parse error (invalid property name, etc.)
           while token && token[:node] != :semicolon
-            token = consume_component_value(tokens)
+            token = consume_component_value(input)
           end
         end
       end
@@ -214,22 +218,22 @@ module Crass
     # Consumes a function and returns it.
     #
     # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-function
-    def consume_function(tokens = @tokens)
+    def consume_function(input = @tokens)
       function = {
-        :name   => tokens.current[:value],
+        :name   => input.current[:value],
         :value  => [],
-        :tokens => [tokens.current]
+        :tokens => [input.current]
       }
 
-      function[:tokens].concat(tokens.collect do
-        while token = tokens.consume
+      function[:tokens].concat(input.collect do
+        while token = input.consume
           case token[:node]
           when :')', :eof then break
           when :comment then next
 
           else
-            tokens.reconsume
-            function[:value] << consume_component_value(tokens)
+            input.reconsume
+            function[:value] << consume_component_value(input)
           end
         end
       end)
@@ -241,15 +245,15 @@ module Crass
     # occurs.
     #
     # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-qualified-rule0
-    def consume_qualified_rule(tokens = @tokens)
+    def consume_qualified_rule(input = @tokens)
       rule = {:prelude => []}
 
-      rule[:tokens] = tokens.collect do
+      rule[:tokens] = input.collect do
         while true
-          return nil unless token = tokens.consume
+          return nil unless token = input.consume
 
           if token[:node] == :'{'
-            rule[:block] = consume_simple_block(tokens)
+            rule[:block] = consume_simple_block(input)
             break
 
           # elsif [simple block with an associated <<{-token>>??]
@@ -261,8 +265,8 @@ module Crass
           # already associated with a simple block? What am I missing?
 
           else
-            tokens.reconsume
-            rule[:prelude] << consume_component_value(tokens)
+            input.reconsume
+            rule[:prelude] << consume_component_value(input)
           end
         end
       end
@@ -307,23 +311,23 @@ module Crass
     # token.
     #
     # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-simple-block0
-    def consume_simple_block(tokens = @tokens)
-      start_token = tokens.current[:node]
+    def consume_simple_block(input = @tokens)
+      start_token = input.current[:node]
       end_token   = BLOCK_END_TOKENS[start_token]
 
       block = {
         :start  => start_token.to_s,
         :end    => end_token.to_s,
         :value  => [],
-        :tokens => [tokens.current]
+        :tokens => [input.current]
       }
 
-      block[:tokens].concat(tokens.collect do
-        while token = tokens.consume
+      block[:tokens].concat(input.collect do
+        while token = input.consume
           break if token[:node] == end_token || token[:node] == :eof
 
-          tokens.reconsume
-          block[:value] << consume_component_value(tokens)
+          input.reconsume
+          block[:value] << consume_component_value(input)
         end
       end)
 
@@ -335,21 +339,22 @@ module Crass
       {:node => type}.merge!(properties)
     end
 
-    # Parses the given _tokens_ into a selector node and returns it.
+    # Parses the given _input_ tokens into a selector node and returns it.
     #
     # Doesn't bother splitting the selector list into individual selectors or
     # validating them. Feel free to do that yourself! It'll be fun!
-    def parse_selector(tokens)
+    def create_selector(input)
       create_node(:selector,
-        :value  => parse_value(tokens),
-        :tokens => tokens)
+        :value  => parse_value(input),
+        :tokens => input)
     end
 
-    # Parses a style rule and returns the result.
+    # Creates a `:style_rule` node from the given qualified _rule_, and returns
+    # it.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#style-rules
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-list-of-declarations0
-    def parse_style_rule(rule)
+    # * http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#style-rules
+    # * http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-list-of-declarations0
+    def create_style_rule(rule)
       children = []
       tokens   = TokenScanner.new(rule[:block][:value])
 
@@ -366,7 +371,7 @@ module Crass
       end
 
       create_node(:style_rule,
-        :selector => parse_selector(rule[:prelude]),
+        :selector => create_selector(rule[:prelude]),
         :children => children
       )
     end
