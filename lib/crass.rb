@@ -10,4 +10,5 @@ module Crass
   def self.parse(input, options = {})
     Parser.parse_stylesheet(input, options)
   end
+
 end
