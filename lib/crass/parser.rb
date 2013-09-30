@@ -91,11 +91,14 @@ module Crass
 
     # Consumes an at-rule and returns it.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-an-at-rule0
-    def consume_at_rule(tokens = @tokens)
-      rule = {:prelude => []}
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-an-at-rule
+    def consume_at_rule(input = @tokens)
+      rule = {}
 
-      rule[:tokens] = tokens.collect do
+      rule[:tokens] = input.collect do
+        rule[:name]    = parse_value(input.consume)
+        rule[:prelude] = []
+
         while token = input.consume
           case token[:node]
           when :comment then next
@@ -380,10 +383,14 @@ module Crass
     def parse_value(nodes)
       string = ''
 
+      nodes = [nodes] unless nodes.is_a?(Array)
+
       nodes.each do |node|
         case node[:node]
         when :comment, :semicolon then next
-        when :ident then string << node[:value]
+
+        when :at_keyword, :ident
+          string << node[:value]
 
         when :function
           if node[:value].is_a?(String)
