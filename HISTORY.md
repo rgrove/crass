@@ -1,8 +1,8 @@
 Crass Change History
 ====================
 
-git
----
+0.0.2 (2013-09-30)
+------------------
 
 * Fixed: `:at_rule` nodes now have a `:name` key.
 

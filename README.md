@@ -140,6 +140,34 @@ a:hover {
 
 Wasn't that exciting?
 
+A Note on Versioning
+--------------------
+
+Crass's version number currently has a "0.x" prefix, indicating that it's a new
+project under heavy development. **As long as the version number starts with
+"0.x", minor revisions may introduce breaking changes.** You've been warned!
+
+Once Crass reaches version 1.0.0, it will adhere strictly to
+[SemVer 2.0][semver].
+
+[semver]:http://semver.org/spec/v2.0.0.html
+
+Contributing
+------------
+
+The best way to contribute right now is to use Crass and [create issues][issue]
+when you run into problems.
+
+Pull requests that fix bugs are more than welcome as long as they include tests.
+Please adhere to the style and format of the surrounding code, or I might ask
+you to change things.
+
+If you want to add a feature or refactor something, please get in touch first to
+make sure I'm on board with your idea and approach; I'm pretty picky, and I'd
+hate to have to turn down a pull request you spent a lot of time on.
+
+[issue]: https://github.com/rgrove/crass/issues/new
+
 License
 -------
 
