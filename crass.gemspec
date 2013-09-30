@@ -8,6 +8,7 @@ Gem::Specification.new do |s|
   s.authors  = ['Ryan Grove']
   s.email    = 'ryan@wonko.com'
   s.homepage = 'https://github.com/rgrove/crass/'
+  s.license  = 'MIT'
 
   s.platform = Gem::Platform::RUBY
   s.required_ruby_version = Gem::Requirement.new('>= 1.9.2')
