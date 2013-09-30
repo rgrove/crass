@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module Crass
 
   # Similar to a StringScanner, but with extra functionality needed to tokenize

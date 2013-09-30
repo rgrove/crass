@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module Crass
 
   # Like {Scanner}, but for tokens!
