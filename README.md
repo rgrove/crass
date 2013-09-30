@@ -6,6 +6,8 @@ Crass is a Ruby CSS parser based on the [CSS Syntax Module Level 3][css] draft.
 * [Home](https://github.com/rgrove/crass/)
 * [API Docs](http://rubydoc.info/github/rgrove/crass/master)
 
+[![Build Status](https://travis-ci.org/rgrove/crass.png?branch=master)](https://travis-ci.org/rgrove/crass?branch=master)
+
 Features
 --------
 
@@ -41,8 +43,7 @@ Problems
   (except for wholesale removal of nodes) are not reflected in the serialized
   output.
 
-* It doesn't have any unit tests yet, because it's very, very new and I'm
-  still experimenting with its architecture.
+* Unit tests aren't complete yet.
 
 * Probably tons of other things. Did I mention it's very new and experimental?
 
