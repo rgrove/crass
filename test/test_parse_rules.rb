@@ -50,5 +50,20 @@ describe 'Crass::Parser' do
 
       assert_tokens " ", tree[1], 6
     end
+
+    it 'should parse the block of an at-rule' do
+      rule = CP.parse_stylesheet("@media (max-width: 400px) {.foo{color:#fff;}}")[0]
+      assert_equal :at_rule, rule[:node]
+
+      style_rule = parse(rule[:block][:value])[0]
+      assert_equal :style_rule, style_rule[:node]
+      assert_equal ".foo", style_rule[:selector][:value]
+      assert_equal 1, style_rule[:children].size
+
+      prop = style_rule[:children][0]
+      assert_equal :property, prop[:node]
+      assert_equal "color", prop[:name]
+      assert_equal "#fff", prop[:value]
+    end
   end
 end

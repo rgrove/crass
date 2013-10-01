@@ -17,7 +17,8 @@ module Crass
     # -- Class Methods ---------------------------------------------------------
 
     # Parses a list of CSS rules (such as the content of a `@media` block) and
-    # returns a parse tree.
+    # returns a parse tree. The only difference from {#parse_stylesheet} is that
+    # CDO/CDC nodes (`<!--` and `-->`) aren't ignored.
     #
     # See {Tokenizer#initialize} for _options_.
     #
@@ -93,7 +94,7 @@ module Crass
 
     # -- Instance Methods ------------------------------------------------------
 
-    # Array of tokens generated from this parser's input.
+    # {TokenScanner} wrapping the tokens generated from this parser's input.
     attr_reader :tokens
 
     # Initializes a parser based on the given _input_, which may be a CSS string
@@ -115,7 +116,7 @@ module Crass
       rule = {}
 
       rule[:tokens] = input.collect do
-        rule[:name]    = parse_value(input.consume)
+        rule[:name]    = input.consume[:value]
         rule[:prelude] = []
 
         while token = input.consume
@@ -127,12 +128,14 @@ module Crass
             rule[:block] = consume_simple_block(input)
             break
 
-          # TODO: At this point, the spec says we should check for a "simple
-          # block with an associated token of <<{-token>>", but isn't that
-          # exactly what we just did above? And the tokenizer only ever produces
-          # standalone <<{-token>>s, so how could the token stream ever contain
-          # one that's already associated with a simple block? What am I
-          # missing?
+          when :simple_block
+            if token[:start] == '{'
+              rule[:block] = token
+              break
+            else
+              input.reconsume
+              rule[:prelude] << consume_component_value(input)
+            end
 
           else
             input.reconsume
@@ -266,7 +269,7 @@ module Crass
     # Consumes a qualified rule and returns it, or `nil` if a parse error
     # occurs.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-qualified-rule0
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-qualified-rule
     def consume_qualified_rule(input = @tokens)
       rule = {:prelude => []}
 
@@ -277,15 +280,9 @@ module Crass
           if token[:node] == :'{'
             rule[:block] = consume_simple_block(input)
             break
-
-          # elsif [simple block with an associated <<{-token>>??]
-
-          # TODO: At this point, the spec says we should check for a "simple block
-          # with an associated token of <<{-token>>", but isn't that exactly what
-          # we just did above? And the tokenizer only ever produces standalone
-          # <<{-token>>s, so how could the token stream ever contain one that's
-          # already associated with a simple block? What am I missing?
-
+          elsif token[:node] == :simple_block
+            rule[:block] = token
+            break
           else
             input.reconsume
             rule[:prelude] << consume_component_value(input)
@@ -298,7 +295,7 @@ module Crass
 
     # Consumes a list of rules and returns them.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-list-of-rules0
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-list-of-rules
     def consume_rules(flags = {})
       rules = []
 
@@ -377,32 +374,36 @@ module Crass
     # * http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#style-rules
     # * http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-list-of-declarations0
     def create_style_rule(rule)
-      children = []
-      tokens   = TokenScanner.new(rule[:block][:value])
+      create_node(:style_rule,
+        :selector => create_selector(rule[:prelude]),
+        :children => parse_properties(rule[:block][:value]))
+    end
+
+    # Parses an array of `:declaration` nodes into an array of `:property` nodes
+    # (and any non-declaration nodes left behind after parsing) and returns it.
+    def parse_properties(input)
+      properties = []
+      tokens     = TokenScanner.new(input)
 
       consume_declarations(tokens).each do |decl|
         unless decl[:node] == :declaration
-          children << decl
+          properties << decl
           next
         end
 
-        children << create_node(:property,
+        properties << create_node(:property,
           :name   => decl[:name],
           :value  => parse_value(decl[:value]),
           :tokens => decl[:tokens])
       end
 
-      create_node(:style_rule,
-        :selector => create_selector(rule[:prelude]),
-        :children => children
-      )
+      properties
     end
 
     # Returns the unescaped value of a selector name or property declaration.
     def parse_value(nodes)
+      nodes  = [nodes] unless nodes.is_a?(Array)
       string = ''
-
-      nodes = [nodes] unless nodes.is_a?(Array)
 
       nodes.each do |node|
         case node[:node]
