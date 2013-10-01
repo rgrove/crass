@@ -16,6 +16,25 @@ module Crass
 
     # -- Class Methods ---------------------------------------------------------
 
+    # Parses a list of CSS rules (such as the content of a `@media` block) and
+    # returns a parse tree.
+    #
+    # See {Tokenizer#initialize} for _options_.
+    #
+    # http://dev.w3.org/csswg/css-syntax-3/#parse-a-list-of-rules
+    def self.parse_rules(input, options = {})
+      parser = Parser.new(input, options)
+      rules  = parser.consume_rules
+
+      rules.map do |rule|
+        if rule[:node] == :qualified_rule
+          parser.create_style_rule(rule)
+        else
+          rule
+        end
+      end
+    end
+
     # Parses a CSS stylesheet and returns a parse tree.
     #
     # See {Tokenizer#initialize} for _options_.
@@ -26,10 +45,10 @@ module Crass
       rules  = parser.consume_rules(:top_level => true)
 
       rules.map do |rule|
-        case rule[:node]
-        # TODO: handle at-rules
-        when :qualified_rule then parser.create_style_rule(rule)
-        else rule
+        if rule[:node] == :qualified_rule
+          parser.create_style_rule(rule)
+        else
+          rule
         end
       end
     end

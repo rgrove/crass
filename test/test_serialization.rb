@@ -2,6 +2,8 @@
 require_relative 'support/common'
 
 describe 'Serialization' do
+  parallelize_me!
+
   Dir[File.join(File.dirname(__FILE__), 'support/serialization/*.css')].each do |filepath|
     it "should parse and serialize #{filepath}" do
       input  = File.read(filepath)

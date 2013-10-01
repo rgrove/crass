@@ -1,6 +1,13 @@
 Crass Change History
 ====================
 
+git
+---
+
+* Added `Crass::Parser.parse_rules`, for parsing the contents of an at-rule
+  block, such as `@media`.
+
+
 0.0.2 (2013-09-30)
 ------------------
 
