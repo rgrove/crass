@@ -16,13 +16,23 @@ module Crass
 
     # -- Class Methods ---------------------------------------------------------
 
-    # Parses a list of CSS rules (such as the content of a `@media` block) and
-    # returns a parse tree. The only difference from {#parse_stylesheet} is that
-    # CDO/CDC nodes (`<!--` and `-->`) aren't ignored.
+    # Parses CSS properties (such as the contents of an HTML element's `style`
+    # attribute) and returns a parse tree.
     #
     # See {Tokenizer#initialize} for _options_.
     #
-    # http://dev.w3.org/csswg/css-syntax-3/#parse-a-list-of-rules
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-list-of-declarations
+    def self.parse_properties(input, options = {})
+      Parser.new(input, options).parse_properties
+    end
+
+    # Parses a CSS rules (such as the content of a `@media` block) and returns a
+    # parse tree. The only difference from {#parse_stylesheet} is that CDO/CDC
+    # nodes (`<!--` and `-->`) aren't ignored.
+    #
+    # See {Tokenizer#initialize} for _options_.
+    #
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-list-of-rules
     def self.parse_rules(input, options = {})
       parser = Parser.new(input, options)
       rules  = parser.consume_rules
@@ -212,7 +222,7 @@ module Crass
     # NOTE: The returned list may include `:comment`, `:semicolon`, and
     # `:whitespace` nodes, which is non-standard.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-list-of-declarations0
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-list-of-declarations
     def consume_declarations(input = @tokens)
       declarations = []
 
@@ -225,8 +235,13 @@ module Crass
           # TODO: this is technically a parse error when parsing a style rule,
           # but not necessarily at other times.
 
-          # TODO: It seems like we should reconsume the current token here,
-          # since that's what happens when consuming a list of rules.
+          # Note: The spec doesn't say we should reconsume here, but it's
+          # necessary since `consume_at_rule` must consume the `:at_keyword` as
+          # the rule's name or it'll end up in the prelude. The spec *does* say
+          # we should reconsume when an `:at_keyword` is encountered in
+          # `consume_rules`, so we either have to reconsume in both places or in
+          # neither place. I've chosen to reconsume in both places.
+          input.reconsume
           declarations << consume_at_rule(input)
 
         when :ident

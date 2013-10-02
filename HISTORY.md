@@ -4,9 +4,11 @@ Crass Change History
 git
 ---
 
-* Added `Crass::Parser#parse_rules` and a convenient class method of the same
-  name, which can be used to parse the contents of an `:at_rule` block that may
-  contain style rules, such as `@media`.
+* Added `Crass::Parser.parse_properties`, which can be used to parse the
+  contents of an HTML element's `style` attribute.
+
+* Added `Crass::Parser.parse_rules`, which can be used to parse the contents of
+  an `:at_rule` block like `@media` that may contain style rules.
 
 * Fixed: `Crass::Parser#consume_at_rule` and `#consume_qualified_rule` didn't
   properly handle already-parsed `:simple_block` nodes in the input, which
@@ -15,8 +17,10 @@ git
 * Fixed: On `:property` nodes, `:important` is now set to `true` when the
   property is followed by an "!important" declaration.
 
-* Fixed: "!important" is no longer included in the `:value` of a `:property`
-  node.
+* Fixed: "!important" is no longer included in the value of a `:property` node.
+
+* Fixed: Added a workaround for a possible spec bug when an `:at_keyword` is
+  encountered while consuming declarations.
 
 
 0.0.2 (2013-09-30)
