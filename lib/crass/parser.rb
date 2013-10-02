@@ -162,34 +162,48 @@ module Crass
 
     # Consumes a declaration and returns it, or `nil` on parse error.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-declaration0
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-declaration
     def consume_declaration(input = @tokens)
       declaration = {}
+      value       = []
 
       declaration[:tokens] = input.collect do
         declaration[:name] = input.consume[:value]
 
-        value = []
         token = input.consume
         token = input.consume while token[:node] == :whitespace
 
         return nil if token[:node] != :colon # TODO: parse error
-
         value << token while token = input.consume
-        declaration[:value] = value
+      end
 
-        maybe_important = value.reject {|v| v[:node] == :whitespace }[-2, 2]
+      # Look for !important.
+      pos = -1
+      while token = value[pos]
+        type = token[:node]
 
-        if maybe_important &&
-            maybe_important[0][:node] == :delim &&
-            maybe_important[0][:value] == '!' &&
-            maybe_important[1][:node] == :ident &&
-            maybe_important[1][:value].downcase == 'important'
+        if type == :whitespace || type == :comment || type == :semicolon
+          pos -= 1
+          next
+        end
 
-          declaration[:important] = true
+        if type == :ident && token[:value].downcase == 'important'
+          prev_token = value[pos - 1]
+
+          if prev_token && prev_token[:node] == :delim &&
+              prev_token[:value] == '!'
+
+            declaration[:important] = true
+            value.slice!(pos - 1, 2)
+          else
+            break
+          end
+        else
+          break
         end
       end
 
+      declaration[:value] = value
       create_node(:declaration, declaration)
     end
 

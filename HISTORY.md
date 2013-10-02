@@ -12,6 +12,9 @@ git
   properly handle already-parsed `:simple_block` nodes in the input, which
   occurs when parsing rules in the value of an `:at_rule` block.
 
+* Fixed: "!important" is no longer included in the `:value` of a `:property`
+  node.
+
 
 0.0.2 (2013-09-30)
 ------------------
