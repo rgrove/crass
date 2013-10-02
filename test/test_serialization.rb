@@ -14,7 +14,7 @@ describe 'Serialization' do
 
       output = CP.stringify(tree)
 
-      assert_equal input, output
+      assert_equal(input, output)
     end
   end
 end
