@@ -408,13 +408,11 @@ module Crass
           next
         end
 
-        prop = create_node(:property,
-          :name   => decl[:name],
-          :value  => parse_value(decl[:value]),
-          :tokens => decl[:tokens])
-
-        prop[:important] = true if decl[:important]
-        properties << prop
+        properties << create_node(:property,
+          :name      => decl[:name],
+          :value     => parse_value(decl[:value]),
+          :important => decl[:important] == true,
+          :tokens    => decl[:tokens])
       end
 
       properties
