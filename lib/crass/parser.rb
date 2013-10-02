@@ -393,22 +393,28 @@ module Crass
         :children => parse_properties(rule[:block][:value]))
     end
 
-    # Parses an array of `:declaration` nodes into an array of `:property` nodes
-    # (and any non-declaration nodes left behind after parsing) and returns it.
-    def parse_properties(input)
+    # Parses a list of declarations and returns an array of `:property` nodes
+    # (and any non-declaration nodes that were in the input). This is useful for
+    # parsing the contents of an HTML element's `style` attribute.
+    #
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-list-of-declarations
+    def parse_properties(input = @tokens)
+      input      = TokenScanner.new(input) unless input.is_a?(TokenScanner)
       properties = []
-      tokens     = TokenScanner.new(input)
 
-      consume_declarations(tokens).each do |decl|
+      consume_declarations(input).each do |decl|
         unless decl[:node] == :declaration
           properties << decl
           next
         end
 
-        properties << create_node(:property,
+        prop = create_node(:property,
           :name   => decl[:name],
           :value  => parse_value(decl[:value]),
           :tokens => decl[:tokens])
+
+        prop[:important] = true if decl[:important]
+        properties << prop
       end
 
       properties

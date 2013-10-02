@@ -186,6 +186,7 @@ shared_tests_for 'parsing a list of rules' do
       assert_equal :property, property[:node]
       assert_equal "color", property[:name]
       assert_equal "#aaa", property[:value]
+      assert_nil property[:important]
       assert_tokens "color: #aaa;", property[:tokens], 16
     end
 
@@ -214,6 +215,7 @@ shared_tests_for 'parsing a list of rules' do
       assert_equal :property, property[:node]
       assert_equal "color", property[:name]
       assert_equal "#aaa", property[:value]
+      assert_nil property[:important]
       assert_tokens "color: #aaa;", property[:tokens], 16, options
     end
 
@@ -239,6 +241,7 @@ shared_tests_for 'parsing a list of rules' do
       assert_equal :property, property[:node]
       assert_equal "color", property[:name]
       assert_equal "#aaa", property[:value]
+      assert_nil property[:important]
       assert_tokens "color: #aaa  ", property[:tokens], 8
     end
 
@@ -265,6 +268,7 @@ shared_tests_for 'parsing a list of rules' do
       assert_equal :property, property[:node]
       assert_equal "color", property[:name]
       assert_equal "#aaa", property[:value]
+      assert_nil property[:important]
       assert_tokens "color: #aaa  ", property[:tokens], 8, options
     end
   end
@@ -291,6 +295,7 @@ shared_tests_for 'parsing a list of rules' do
     assert_equal :property, prop[:node]
     assert_equal "color", prop[:name]
     assert_equal "#aaa", prop[:value]
+    assert_nil prop[:important]
     assert_tokens "color: #aaa;", prop[:tokens], 6
 
     assert_tokens " ", tree[1], 20
