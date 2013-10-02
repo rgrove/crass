@@ -4,8 +4,8 @@ Crass Change History
 git
 ---
 
-* Added `Crass::Parser.parse_properties`, which can be used to parse the
-  contents of an HTML element's `style` attribute.
+* Added `Crass.parse_properties` and `Crass::Parser.parse_properties`, which can
+  be used to parse the contents of an HTML element's `style` attribute.
 
 * Added `Crass::Parser.parse_rules`, which can be used to parse the contents of
   an `:at_rule` block like `@media` that may contain style rules.
