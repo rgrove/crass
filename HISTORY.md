@@ -4,8 +4,7 @@ Crass Change History
 git
 ---
 
-* Tokenization performance has been improved significantly (although I still
-  wouldn't call it fast).
+* Tokenization is a little over 50% faster.
 
 * Added `Crass.parse_properties` and `Crass::Parser.parse_properties`, which can
   be used to parse the contents of an HTML element's `style` attribute.

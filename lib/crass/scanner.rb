@@ -31,7 +31,8 @@ module Crass
     # Consumes the next character and returns it, advancing the pointer, or
     # an empty string if the end of the string has been reached.
     def consume
-      @pos += 1 if @current = @scanner.getch || ''
+      @current = @scanner.getch || ''
+      @pos += 1 if @current
       @current
     end
 
@@ -46,7 +47,7 @@ module Crass
     # Returns `true` if the end of the string has been reached, `false`
     # otherwise.
     def eos?
-      @scanner.eos?
+      @pos == @len
     end
 
     # Sets the marker to the position of the next character that will be

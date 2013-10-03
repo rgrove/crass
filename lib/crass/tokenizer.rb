@@ -72,11 +72,13 @@ module Crass
       @s.mark
       return token(:whitespace) if @s.scan(RE_WHITESPACE)
 
-      case char = @s.consume
-      when '"'
+      char = @s.consume
+
+      case char.to_sym
+      when :'"'
         consume_string('"')
 
-      when '#'
+      when :'#'
         if @s.peek =~ RE_NAME || valid_escape?
           value = consume_name
 
@@ -87,7 +89,7 @@ module Crass
           token(:delim, :value => char)
         end
 
-      when '$'
+      when :'$'
         if @s.peek == '='
           @s.consume
           token(:suffix_match)
@@ -95,16 +97,16 @@ module Crass
           token(:delim, :value => char)
         end
 
-      when "'"
+      when :"'"
         consume_string("'")
 
-      when '('
+      when :'('
         token(:'(')
 
-      when ')'
+      when :')'
         token(:')')
 
-      when '*'
+      when :*
         if @s.peek == '='
           @s.consume
           token(:substring_match)
@@ -118,7 +120,7 @@ module Crass
           token(:delim, :value => char)
         end
 
-      when '+'
+      when :+
         if start_number?
           @s.reconsume
           consume_numeric
@@ -126,10 +128,10 @@ module Crass
           token(:delim, :value => char)
         end
 
-      when ','
+      when :','
         token(:comma)
 
-      when '-'
+      when :-
         if start_number?
           @s.reconsume
           consume_numeric
@@ -144,7 +146,7 @@ module Crass
           token(:delim, :value => char)
         end
 
-      when '.'
+      when :'.'
         if start_number?
           @s.reconsume
           consume_numeric
@@ -152,7 +154,7 @@ module Crass
           token(:delim, :value => char)
         end
 
-      when '/'
+      when :/
         if @s.peek == '*'
           @s.consume
 
@@ -171,13 +173,13 @@ module Crass
           token(:delim, :value => char)
         end
 
-      when ':'
+      when :':'
         token(:colon)
 
-      when ';'
+      when :';'
         token(:semicolon)
 
-      when '<'
+      when :<
         if @s.peek(3) == '!--'
           @s.consume
           @s.consume
@@ -188,17 +190,17 @@ module Crass
           token(:delim, :value => char)
         end
 
-      when '@'
+      when :'@'
         if start_identifier?
           token(:at_keyword, :value => consume_name)
         else
           token(:delim, :value => char)
         end
 
-      when '['
+      when :'['
         token(:'[')
 
-      when '\\'
+      when :'\\'
         if valid_escape?(char + @s.peek)
           @s.reconsume
           consume_ident
@@ -208,10 +210,10 @@ module Crass
             :value => char)
         end
 
-      when ']'
+      when :']'
         token(:']')
 
-      when '^'
+      when :'^'
         if @s.peek == '='
           @s.consume
           token(:prefix_match)
@@ -219,17 +221,13 @@ module Crass
           token(:delim, :value => char)
         end
 
-      when '{'
+      when :'{'
         token(:'{')
 
-      when '}'
+      when :'}'
         token(:'}')
 
-      when RE_DIGIT
-        @s.reconsume
-        consume_numeric
-
-      when 'U', 'u'
+      when :U, :u
         if @s.peek(2) =~ RE_UNICODE_RANGE_START
           @s.consume
           consume_unicode_range
@@ -238,11 +236,7 @@ module Crass
           consume_ident
         end
 
-      when RE_NAME_START
-        @s.reconsume
-        consume_ident
-
-      when '|'
+      when :|
         case @s.peek
         when '='
           @s.consume
@@ -256,7 +250,7 @@ module Crass
           token(:delim, :value => char)
         end
 
-      when '~'
+      when :~
         if @s.peek == '='
           @s.consume
           token(:include_match)
@@ -265,7 +259,18 @@ module Crass
         end
 
       else
-        token(:delim, :value => char)
+        case char
+        when RE_DIGIT
+          @s.reconsume
+          consume_numeric
+
+        when RE_NAME_START
+          @s.reconsume
+          consume_ident
+
+        else
+          token(:delim, :value => char)
+        end
       end
     end
 
@@ -325,16 +330,18 @@ module Crass
 
     # Consumes an ident-like token and returns it.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-an-ident-like-token0
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-an-ident-like-token
     def consume_ident
       value = consume_name
 
-      if value.downcase == 'url' && @s.peek == '('
+      if @s.peek == '('
         @s.consume
-        consume_url
-      elsif @s.peek == '('
-        @s.consume
-        token(:function, :value => value)
+
+        if value.downcase == 'url'
+          consume_url
+        else
+          token(:function, :value => value)
+        end
       else
         token(:ident, :value => value)
       end
@@ -342,7 +349,7 @@ module Crass
 
     # Consumes a name and returns it.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-name0
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-name
     def consume_name
       result = ''
 
