@@ -76,19 +76,31 @@ module Crass
       string = ''
 
       nodes.each do |node|
+        next if node.nil?
+
         case node[:node]
+        when :at_rule
+          string << node[:tokens].first[:raw]
+          string << self.stringify(node[:prelude], options)
+
+          if node[:block]
+            string << self.stringify(node[:block], options)
+          end
+
         when :comment
           string << node[:raw] unless options[:exclude_comments]
 
+        when :property
+          string << self.stringify(node[:tokens], options)
+
+        when :simple_block
+          string << node[:start]
+          string << self.stringify(node[:value], options)
+          string << node[:end]
+
         when :style_rule
           string << self.stringify(node[:selector][:tokens], options)
-          string << "{"
-          string << self.stringify(node[:children], options)
-          string << "}"
-
-        when :property
-          string << options[:indent] if options[:indent]
-          string << self.stringify(node[:tokens], options)
+          string << "{#{self.stringify(node[:children], options)}}"
 
         else
           if node.key?(:raw)
