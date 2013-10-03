@@ -73,7 +73,9 @@ module Crass
     # doesn't consume them. The number of characters returned may be less than
     # _length_ if the end of the string is reached.
     def peek(length = 1)
-      if result = @chars[@pos, length]
+      if length == 1
+         @chars[@pos] || ''
+      elsif result = @chars[@pos, length]
         result.join('')
       else
         ''
