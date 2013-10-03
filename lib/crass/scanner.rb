@@ -1,4 +1,5 @@
 # encoding: utf-8
+require 'strscan'
 
 module Crass
 
@@ -17,13 +18,12 @@ module Crass
     # position, not a byte position, so it accounts for multi-byte characters.
     attr_accessor :pos
 
-    # The string being scanned.
-    attr_reader :string
-
     # Creates a Scanner instance for the given _input_ string or IO instance.
     def initialize(input)
-      @string = input.is_a?(IO) ? input.read : input.to_s
-      @chars  = @string.chars.to_a
+      string = input.is_a?(IO) ? input.read : input.to_s
+
+      @chars   = string.chars.to_a
+      @scanner = StringScanner.new(string)
 
       reset
     end
@@ -31,8 +31,7 @@ module Crass
     # Consumes the next character and returns it, advancing the pointer, or
     # an empty string if the end of the string has been reached.
     def consume
-      @current = @chars[@pos] || ''
-      @pos += 1 if @current
+      @pos += 1 if @current = @scanner.getch || ''
       @current
     end
 
@@ -40,17 +39,14 @@ module Crass
     # the end of the string. Returns an empty string is the end of the string
     # has already been reached.
     def consume_rest
-      rest     = @string[@pos..@len] || ''
-      @current = rest[-1] || ''
-      @pos     = @len
-
-      rest
+      @pos = @len
+      @scanner.rest
     end
 
     # Returns `true` if the end of the string has been reached, `false`
     # otherwise.
     def eos?
-      @pos == @len
+      @scanner.eos?
     end
 
     # Sets the marker to the position of the next character that will be
@@ -62,7 +58,7 @@ module Crass
     # Returns the substring between {#marker} and {#pos}, without altering the
     # pointer.
     def marked
-      if result = @chars[@marker...@pos]
+      if result = @chars[@marker, @pos - @marker]
         result.join('')
       else
         ''
@@ -73,26 +69,21 @@ module Crass
     # doesn't consume them. The number of characters returned may be less than
     # _length_ if the end of the string is reached.
     def peek(length = 1)
-      if length == 1
-         @chars[@pos] || ''
-      elsif result = @chars[@pos, length]
-        result.join('')
-      else
-        ''
-      end
+      @scanner.peek(length)
     end
 
     # Moves the pointer back one character without changing the value of
     # {#current}. The next call to {#consume} will re-consume the current
     # character.
     def reconsume
+      @scanner.unscan
       @pos -= 1 if @pos > 0
     end
 
     # Resets the pointer to the beginning of the string.
     def reset
       @current = nil
-      @len     = @string.length
+      @len     = @chars.size
       @marker  = 0
       @pos     = 0
     end
@@ -101,29 +92,30 @@ module Crass
     # matched substring will be returned and the pointer will be advanced.
     # Otherwise, `nil` will be returned.
     def scan(pattern)
-      match = pattern.match(@string, @pos)
-      return nil if match.nil? || match.begin(0) != @pos
+      if match = @scanner.scan(pattern)
+        @pos     += match.size
+        @current  = @chars[@pos - 1]
+      end
 
-      @pos     = match.end(0)
-      @current = @chars[@pos - 1]
-
-      match[0]
+      match
     end
 
     # Scans the string until the _pattern_ is matched. Returns the substring up
     # to and including the end of the match, and advances the pointer. If there
     # is no match, `nil` is returned and the pointer is not advanced.
     def scan_until(pattern)
-      start = @pos
-      match = pattern.match(@string, @pos)
+      if match = @scanner.scan_until(pattern)
+        @pos     += match.size
+        @current  = @chars[@pos - 1]
+      end
 
-      return nil if match.nil?
-
-      @pos     = match.end(0)
-      @current = @chars[@pos - 1]
-
-      @string[start...@pos]
+      match
     end
+  end
+
+  # Returns the string being scanned.
+  def string
+    @scanner.string
   end
 
 end
