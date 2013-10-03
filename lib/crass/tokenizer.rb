@@ -362,7 +362,7 @@ module Crass
         char = @s.peek
 
         if char == '\\' && valid_escape?
-          result << @s.consume
+          @s.consume
           result << consume_escaped
 
         # NON-STANDARD: IE * hack
