@@ -193,9 +193,9 @@ module Crass
         declaration[:name] = input.consume[:value]
 
         token = input.consume
-        token = input.consume while token[:node] == :whitespace
+        token = input.consume while token && token[:node] == :whitespace
 
-        return nil if token[:node] != :colon # TODO: parse error
+        return nil if !token || token[:node] != :colon # TODO: parse error
         value << token while token = input.consume
       end
 
