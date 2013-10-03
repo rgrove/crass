@@ -161,7 +161,7 @@ module Crass
           if text = @s.scan_until(RE_COMMENT_CLOSE)
             text.slice!(-2, 2)
           else
-            text = @s.rest
+            text = @s.consume_rest
           end
 
           if @options[:preserve_comments]
