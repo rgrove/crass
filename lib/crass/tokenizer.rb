@@ -346,11 +346,15 @@ module Crass
     def consume_name
       result = ''
 
-      while char = @s.peek
-        if char =~ RE_NAME
-          result << @s.consume
+      while true
+        if match = @s.scan(RE_NAME)
+          result << match
+          next
+        end
 
-        elsif char == '\\' && valid_escape?
+        char = @s.peek
+
+        if char == '\\' && valid_escape?
           result << @s.consume
           result << consume_escaped
 
