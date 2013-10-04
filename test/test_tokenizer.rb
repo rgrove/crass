@@ -152,5 +152,75 @@ describe 'Crass::Tokenizer' do
        :value=>"Ͷ76Ͷ76\uFFFD"}
     ], tokens)
   end
+
+  it 'should tokenize functions and hashes' do
+    tokens = CT.tokenize("rgba0() -rgba() --rgba() -\\-rgba() 0rgba() -0rgba() _rgba() .rgba() rgbâ() \\30rgba() rgba () @rgba() #rgba()")
+
+    assert_equal([
+      {:node=>:function, :pos=>0, :raw=>"rgba0(", :value=>"rgba0"},
+      {:node=>:")", :pos=>6, :raw=>")"},
+      {:node=>:whitespace, :pos=>7, :raw=>" "},
+      {:node=>:function, :pos=>8, :raw=>"-rgba(", :value=>"-rgba"},
+      {:node=>:")", :pos=>14, :raw=>")"},
+      {:node=>:whitespace, :pos=>15, :raw=>" "},
+      {:node=>:delim, :pos=>16, :raw=>"-", :value=>"-"},
+      {:node=>:function, :pos=>17, :raw=>"-rgba(", :value=>"-rgba"},
+      {:node=>:")", :pos=>23, :raw=>")"},
+      {:node=>:whitespace, :pos=>24, :raw=>" "},
+      {:node=>:function, :pos=>25, :raw=>"-\\-rgba(", :value=>"--rgba"},
+      {:node=>:")", :pos=>33, :raw=>")"},
+      {:node=>:whitespace, :pos=>34, :raw=>" "},
+      {:node=>:dimension,
+       :pos=>35,
+       :raw=>"0rgba",
+       :repr=>"0",
+       :type=>:integer,
+       :unit=>"rgba",
+       :value=>0},
+      {:node=>:"(", :pos=>40, :raw=>"("},
+      {:node=>:")", :pos=>41, :raw=>")"},
+      {:node=>:whitespace, :pos=>42, :raw=>" "},
+      {:node=>:dimension,
+       :pos=>43,
+       :raw=>"-0rgba",
+       :repr=>"-0",
+       :type=>:integer,
+       :unit=>"rgba",
+       :value=>0},
+      {:node=>:"(", :pos=>49, :raw=>"("},
+      {:node=>:")", :pos=>50, :raw=>")"},
+      {:node=>:whitespace, :pos=>51, :raw=>" "},
+      {:node=>:function, :pos=>52, :raw=>"_rgba(", :value=>"_rgba"},
+      {:node=>:")", :pos=>58, :raw=>")"},
+      {:node=>:whitespace, :pos=>59, :raw=>" "},
+      {:node=>:delim, :pos=>60, :raw=>".", :value=>"."},
+      {:node=>:function, :pos=>61, :raw=>"rgba(", :value=>"rgba"},
+      {:node=>:")", :pos=>66, :raw=>")"},
+      {:node=>:whitespace, :pos=>67, :raw=>" "},
+      {:node=>:function, :pos=>68, :raw=>"rgbâ(", :value=>"rgbâ"},
+      {:node=>:")", :pos=>73, :raw=>")"},
+      {:node=>:whitespace, :pos=>74, :raw=>" "},
+      {:node=>:function, :pos=>75, :raw=>"\\30rgba(", :value=>"0rgba"},
+      {:node=>:")", :pos=>83, :raw=>")"},
+      {:node=>:whitespace, :pos=>84, :raw=>" "},
+      {:node=>:ident, :pos=>85, :raw=>"rgba", :value=>"rgba"},
+      {:node=>:whitespace, :pos=>89, :raw=>" "},
+      {:node=>:"(", :pos=>90, :raw=>"("},
+      {:node=>:")", :pos=>91, :raw=>")"},
+      {:node=>:whitespace, :pos=>92, :raw=>" "},
+      {:node=>:at_keyword, :pos=>93, :raw=>"@rgba", :value=>"rgba"},
+      {:node=>:"(", :pos=>98, :raw=>"("},
+      {:node=>:")", :pos=>99, :raw=>")"},
+      {:node=>:whitespace, :pos=>100, :raw=>" "},
+      {:node=>:hash,
+       :pos=>101,
+       :raw=>"#rgba",
+       :type=>:id,
+       :value=>"rgba"},
+      {:node=>:"(", :pos=>106, :raw=>"("},
+      {:node=>:")", :pos=>107, :raw=>")"}
+    ], tokens)
+  end
+
 end
 

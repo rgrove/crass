@@ -21,12 +21,7 @@ git
 
 * Fixed: "!important" is no longer included in the value of a `:property` node.
 
-* Fixed: Escape sequences weren't being tokenized properly.
-
-* Fixed: Negative numbers and identifiers preceded by "-" weren't being
-  tokenized properly.
-
-* Fixed: An error when tokenizing an unclosed comment.
+* Fixed: A variety of tokenization edge case bugs uncovered by tests.
 
 * Fixed: Added a workaround for a possible spec bug when an `:at_keyword` is
   encountered while consuming declarations.

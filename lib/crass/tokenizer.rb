@@ -80,11 +80,9 @@ module Crass
 
       when :'#'
         if @s.peek =~ RE_NAME || valid_escape?
-          value = consume_name
-
           token(:hash,
             :type  => start_identifier? ? :id : :unrestricted,
-            :value => value)
+            :value => consume_name)
         else
           token(:delim, :value => char)
         end
