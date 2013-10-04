@@ -471,9 +471,9 @@ module Crass
     # Consumes a Unicode range token and returns it. Assumes the initial "u+" or
     # "U+" has already been consumed.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-unicode-range-token0
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-unicode-range-token
     def consume_unicode_range
-      value = @s.scan(RE_HEX)
+      value = @s.scan(RE_HEX) || ''
 
       while value.length < 6
         break unless @s.peek == '?'
@@ -491,8 +491,8 @@ module Crass
       range[:start] = value.hex
 
       if @s.peek(2) =~ RE_UNICODE_RANGE_END
-        range[:value] << @s.consume << end_value = @s.scan(RE_HEX)
-        range[:end] = end_value.hex
+        @s.consume
+        range[:end] = (@s.scan(RE_HEX) || '').hex
       else
         range[:end] = range[:start]
       end
