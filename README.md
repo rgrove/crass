@@ -97,6 +97,7 @@ This returns a big fat ugly parse tree, which looks like this:
     {:node=>:property,
      :name=>"color",
      :value=>"#0d8bfa",
+     :important=>false,
      :tokens=>
       [{:node=>:ident, :pos=>27, :raw=>"color", :value=>"color"},
        {:node=>:colon, :pos=>32, :raw=>":"},
@@ -111,6 +112,7 @@ This returns a big fat ugly parse tree, which looks like this:
     {:node=>:property,
      :name=>"text-decoration",
      :value=>"underline",
+     :important=>false,
      :tokens=>
       [{:node=>:ident,
         :pos=>45,
