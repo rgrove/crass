@@ -1,10 +1,12 @@
 Crass Change History
 ====================
 
-git
----
+0.1.0 (2013-10-04)
+------------------
 
 * Tokenization is a little over 50% faster.
+
+* Added tons of unit tests.
 
 * Added `Crass.parse_properties` and `Crass::Parser.parse_properties`, which can
   be used to parse the contents of an HTML element's `style` attribute.
@@ -21,7 +23,7 @@ git
 
 * Fixed: "!important" is no longer included in the value of a `:property` node.
 
-* Fixed: A variety of tokenization edge case bugs uncovered by tests.
+* Fixed: A variety of tokenization bugs uncovered by tests.
 
 * Fixed: Added a workaround for a possible spec bug when an `:at_keyword` is
   encountered while consuming declarations.
@@ -37,4 +39,3 @@ git
 ------------------
 
 * Initial release.
-

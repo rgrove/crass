@@ -3,8 +3,8 @@ require './lib/crass/version'
 
 Gem::Specification.new do |s|
   s.name        = 'crass'
-  s.summary     = 'CSS parser based on the CSS Syntax Module Level 3 draft.'
-  s.description = 'Crass is a pure Ruby CSS parser based on the CSS Syntax Module Level 3 draft.'
+  s.summary     = 'CSS parser based on the CSS Syntax Level 3 draft.'
+  s.description = 'Crass is a pure Ruby CSS parser based on the CSS Syntax Level 3 draft.'
   s.version     = Crass::VERSION
   s.authors     = ['Ryan Grove']
   s.email       = ['ryan@wonko.com']
