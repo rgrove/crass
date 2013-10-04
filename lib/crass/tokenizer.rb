@@ -402,7 +402,7 @@ module Crass
 
     # Consumes a numeric token and returns it.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-numeric-token0
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-numeric-token
     def consume_numeric
       number = consume_number
 
@@ -418,6 +418,7 @@ module Crass
 
         create_token(:percentage,
           :repr  => number[0],
+          :type  => number[2],
           :value => number[1])
 
       else
