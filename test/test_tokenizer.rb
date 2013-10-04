@@ -37,6 +37,87 @@ describe 'Crass::Tokenizer' do
     ], tokens)
   end
 
+  it 'should tokenize an identity' do
+    tokens = CT.tokenize("red")
+
+    assert_equal([
+      {:node=>:ident, :pos=>0, :raw=>"red", :value=>"red"}
+    ], tokens)
+  end
+
+  it 'should tokenize an identity preceded and followed by whitespace' do
+    tokens = CT.tokenize("  \t\t\r\n\nRed ")
+
+    assert_equal([
+      {:node=>:whitespace, :pos=>0, :raw=>"  \t\t\n\n"},
+      {:node=>:ident, :pos=>6, :raw=>"Red", :value=>"Red"},
+      {:node=>:whitespace, :pos=>9, :raw=>" "}
+    ], tokens)
+  end
+
+  it 'should tokenize a CDC' do
+    tokens = CT.tokenize("red/* CDC */-->")
+
+    assert_equal([
+      {:node=>:ident, :pos=>0, :raw=>"red", :value=>"red"},
+      {:node=>:cdc, :pos=>12, :raw=>"-->"}
+    ], tokens)
+  end
+
+  it 'should not be fooled by an ident that appears to be a CDC' do
+    tokens = CT.tokenize("red-->/* Not CDC */")
+
+    assert_equal([
+      {:node=>:ident, :pos=>0, :raw=>"red--", :value=>"red--"},
+      {:node=>:delim, :pos=>5, :raw=>">", :value=>">"}
+    ], tokens)
+  end
+
+  it 'should tokenize a mix of idents, delims, and dimensions' do
+    tokens = CT.tokenize("red0 -red --red -\\-red\\ blue 0red -0red \u0000red _Red .red rêd r\\êd \u007F\u0080\u0081")
+
+    assert_equal([
+      {:node=>:ident, :pos=>0, :raw=>"red0", :value=>"red0"},
+      {:node=>:whitespace, :pos=>4, :raw=>" "},
+      {:node=>:ident, :pos=>5, :raw=>"-red", :value=>"-red"},
+      {:node=>:whitespace, :pos=>9, :raw=>" "},
+      {:node=>:delim, :pos=>10, :raw=>"-", :value=>"-"},
+      {:node=>:ident, :pos=>11, :raw=>"-red", :value=>"-red"},
+      {:node=>:whitespace, :pos=>15, :raw=>" "},
+      {:node=>:ident, :pos=>16, :raw=>"-\\-red\\ blue", :value=>"--red blue"},
+      {:node=>:whitespace, :pos=>28, :raw=>" "},
+      {:node=>:dimension,
+       :pos=>29,
+       :raw=>"0red",
+       :repr=>"0",
+       :type=>:integer,
+       :unit=>"red",
+       :value=>0},
+      {:node=>:whitespace, :pos=>33, :raw=>" "},
+      {:node=>:dimension,
+       :pos=>34,
+       :raw=>"-0red",
+       :repr=>"-0",
+       :type=>:integer,
+       :unit=>"red",
+       :value=>0},
+      {:node=>:whitespace, :pos=>39, :raw=>" "},
+      {:node=>:ident, :pos=>40, :raw=>"\uFFFDred", :value=>"\uFFFDred"},
+      {:node=>:whitespace, :pos=>44, :raw=>" "},
+      {:node=>:ident, :pos=>45, :raw=>"_Red", :value=>"_Red"},
+      {:node=>:whitespace, :pos=>49, :raw=>" "},
+      {:node=>:delim, :pos=>50, :raw=>".", :value=>"."},
+      {:node=>:ident, :pos=>51, :raw=>"red", :value=>"red"},
+      {:node=>:whitespace, :pos=>54, :raw=>" "},
+      {:node=>:ident, :pos=>55, :raw=>"rêd", :value=>"rêd"},
+      {:node=>:whitespace, :pos=>58, :raw=>" "},
+      {:node=>:ident, :pos=>59, :raw=>"r\\êd", :value=>"rêd"},
+      {:node=>:whitespace, :pos=>63, :raw=>" "},
+      {:node=>:delim, :pos=>64, :raw=>"\u007F", :value=>"\u007F"},
+      {:node=>:ident, :pos=>65, :raw=>"\u0080\u0081", :value=>"\u0080\u0081"}
+    ], tokens)
+  end
+
   it 'should consume escape sequences' do
     tokens = CT.tokenize("\\30red \\00030 red \\30\r\nred \\0000000red \\1100000red \\red \\r ed \\.red \\ red \\\nred \\376\\37 6\\000376\\0000376\\")
 

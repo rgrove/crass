@@ -132,10 +132,10 @@ module Crass
         token(:comma)
 
       when :-
-        if start_number?
+        if start_number?(char + @s.peek(2))
           @s.reconsume
           consume_numeric
-        elsif start_identifier?
+        elsif start_identifier?(char + @s.peek(2))
           @s.reconsume
           consume_ident
         elsif @s.peek(2) == '->'
