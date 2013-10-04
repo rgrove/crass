@@ -1,7 +1,8 @@
 Crass
 =====
 
-Crass is a Ruby CSS parser based on the [CSS Syntax Module Level 3][css] draft.
+Crass is a Ruby CSS parser based on the [CSS Syntax Level 3][css] draft
+specification.
 
 * [Home](https://github.com/rgrove/crass/)
 * [API Docs](http://rubydoc.info/github/rgrove/crass/master)
@@ -14,8 +15,8 @@ Features
 
 * Pure Ruby, with no runtime dependencies other than Ruby 1.9.x or higher.
 
-* Tokenizes and parses CSS according to the rules defined in the
-  [CSS Syntax Module Level 3][css] draft.
+* Tokenizes and parses CSS according to the rules defined in the 2013 draft of
+  the [CSS Syntax Level 3][css] specification.
 
 * Extremely tolerant of broken or invalid CSS. If a browser can handle it, Crass
   should be able to handle it too.
@@ -33,7 +34,9 @@ Features
 Problems
 --------
 
-* It's pretty slow.
+* Crass isn't terribly fast. I mean, it's Ruby, and it's not really slow by Ruby
+  standards. But compared to the CSS parser in your average browser? Yeah, it's
+  slow.
 
 * Crass only parses the CSS syntax; it doesn't understand what any of it means,
   doesn't coalesce selectors, etc. You can do this yourself by consuming the
@@ -44,9 +47,10 @@ Problems
   (except for wholesale removal of nodes) are not reflected in the serialized
   output.
 
-* Unit tests aren't complete yet.
+* At the moment, Crass only supports UTF-8 input and doesn't respect `@charset`
+  rules. Input in any other encoding will be converted to UTF-8.
 
-* Probably tons of other things. Did I mention it's very new and experimental?
+* Probably other things. Did I mention Crass is pretty new?
 
 Installing
 ----------
@@ -54,9 +58,6 @@ Installing
 ```
 gem install crass
 ```
-
-...but only if you're brave. Seriously, this thing will almost certainly kill
-your family and poop on your pets.
 
 Examples
 --------
@@ -168,6 +169,23 @@ make sure I'm on board with your idea and approach; I'm pretty picky, and I'd
 hate to have to turn down a pull request you spent a lot of time on.
 
 [issue]: https://github.com/rgrove/crass/issues/new
+
+Acknowledgments
+---------------
+
+I'm deeply, deeply grateful to [Simon Sapin][simon] for his wonderfully
+comprehensive [CSS parsing tests][css-tests], which I adapted to create many of
+Crass's tests. They've been invaluable in helping me fix bugs and handle weird
+edge cases, and Crass would be much crappier without them.
+
+I'm also grateful to [Tab Atkins Jr.][tab] and Simon Sapin (again!) for their
+work on the [CSS Syntax Level 3][spec] specification, which defines the
+tokenizing and parsing rules that Crass implements.
+
+[css-tests]:https://github.com/SimonSapin/css-parsing-tests/
+[simon]:http://exyr.org/about/
+[spec]:http://www.w3.org/TR/css-syntax-3/
+[tab]:http://www.xanthir.com/contact/
 
 License
 -------
