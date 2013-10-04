@@ -32,7 +32,6 @@ module Crass
 
     RE_UNICODE_RANGE_START = /\+(?:[0-9A-Fa-f]|\?)/
     RE_UNICODE_RANGE_END   = /-[0-9A-Fa-f]/
-    RE_URL_QUOTE           = /["']/
     RE_WHITESPACE          = /[\n\u0009\u0020]+/
 
     # -- Class Methods ---------------------------------------------------------
@@ -67,10 +66,10 @@ module Crass
     #
     # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-token0
     def consume
-      return token(:eof) if @s.eos?
+      return nil if @s.eos?
 
       @s.mark
-      return token(:whitespace) if @s.scan(RE_WHITESPACE)
+      return create_token(:whitespace) if @s.scan(RE_WHITESPACE)
 
       char = @s.consume
 
@@ -80,34 +79,34 @@ module Crass
 
       when :'#'
         if @s.peek =~ RE_NAME || valid_escape?
-          token(:hash,
+          create_token(:hash,
             :type  => start_identifier? ? :id : :unrestricted,
             :value => consume_name)
         else
-          token(:delim, :value => char)
+          create_token(:delim, :value => char)
         end
 
       when :'$'
         if @s.peek == '='
           @s.consume
-          token(:suffix_match)
+          create_token(:suffix_match)
         else
-          token(:delim, :value => char)
+          create_token(:delim, :value => char)
         end
 
       when :"'"
         consume_string("'")
 
       when :'('
-        token(:'(')
+        create_token(:'(')
 
       when :')'
-        token(:')')
+        create_token(:')')
 
       when :*
         if @s.peek == '='
           @s.consume
-          token(:substring_match)
+          create_token(:substring_match)
 
         elsif @options[:preserve_hacks] && @s.peek =~ RE_NAME_START
           # NON-STANDARD: IE * hack
@@ -115,7 +114,7 @@ module Crass
           consume_ident
 
         else
-          token(:delim, :value => char)
+          create_token(:delim, :value => char)
         end
 
       when :+
@@ -123,11 +122,11 @@ module Crass
           @s.reconsume
           consume_numeric
         else
-          token(:delim, :value => char)
+          create_token(:delim, :value => char)
         end
 
       when :','
-        token(:comma)
+        create_token(:comma)
 
       when :-
         if start_number?(char + @s.peek(2))
@@ -139,9 +138,9 @@ module Crass
         elsif @s.peek(2) == '->'
           @s.consume
           @s.consume
-          token(:cdc)
+          create_token(:cdc)
         else
-          token(:delim, :value => char)
+          create_token(:delim, :value => char)
         end
 
       when :'.'
@@ -149,7 +148,7 @@ module Crass
           @s.reconsume
           consume_numeric
         else
-          token(:delim, :value => char)
+          create_token(:delim, :value => char)
         end
 
       when :/
@@ -163,19 +162,19 @@ module Crass
           end
 
           if @options[:preserve_comments]
-            token(:comment, :value => text)
+            create_token(:comment, :value => text)
           else
             consume
           end
         else
-          token(:delim, :value => char)
+          create_token(:delim, :value => char)
         end
 
       when :':'
-        token(:colon)
+        create_token(:colon)
 
       when :';'
-        token(:semicolon)
+        create_token(:semicolon)
 
       when :<
         if @s.peek(3) == '!--'
@@ -183,47 +182,47 @@ module Crass
           @s.consume
           @s.consume
 
-          token(:cdo)
+          create_token(:cdo)
         else
-          token(:delim, :value => char)
+          create_token(:delim, :value => char)
         end
 
       when :'@'
         if start_identifier?
-          token(:at_keyword, :value => consume_name)
+          create_token(:at_keyword, :value => consume_name)
         else
-          token(:delim, :value => char)
+          create_token(:delim, :value => char)
         end
 
       when :'['
-        token(:'[')
+        create_token(:'[')
 
       when :'\\'
         if valid_escape?(char + @s.peek)
           @s.reconsume
           consume_ident
         else
-          token(:delim,
+          create_token(:delim,
             :error => true,
             :value => char)
         end
 
       when :']'
-        token(:']')
+        create_token(:']')
 
       when :'^'
         if @s.peek == '='
           @s.consume
-          token(:prefix_match)
+          create_token(:prefix_match)
         else
-          token(:delim, :value => char)
+          create_token(:delim, :value => char)
         end
 
       when :'{'
-        token(:'{')
+        create_token(:'{')
 
       when :'}'
-        token(:'}')
+        create_token(:'}')
 
       when :U, :u
         if @s.peek(2) =~ RE_UNICODE_RANGE_START
@@ -238,22 +237,22 @@ module Crass
         case @s.peek
         when '='
           @s.consume
-          token(:dash_match)
+          create_token(:dash_match)
 
         when '|'
           @s.consume
-          token(:column)
+          create_token(:column)
 
         else
-          token(:delim, :value => char)
+          create_token(:delim, :value => char)
         end
 
       when :~
         if @s.peek == '='
           @s.consume
-          token(:include_match)
+          create_token(:include_match)
         else
-          token(:delim, :value => char)
+          create_token(:delim, :value => char)
         end
 
       else
@@ -267,32 +266,35 @@ module Crass
           consume_ident
 
         else
-          token(:delim, :value => char)
+          create_token(:delim, :value => char)
         end
       end
     end
 
     # Consumes the remnants of a bad URL and returns the consumed text.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-the-remnants-of-a-bad-url0
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-the-remnants-of-a-bad-url
     def consume_bad_url
       text = ''
 
-      while true
-        return text if @s.eos?
-
-        if valid_escape?
+      until @s.eos?
+        if valid_escape?(@s.current + @s.peek)
+          text << consume_escaped
+        elsif valid_escape?
+          @s.consume
           text << consume_escaped
         else
           char = @s.consume
 
           if char == ')'
-            return text
+            break
           else
             text << char
           end
         end
       end
+
+      text
     end
 
     # Consumes an escaped code point and returns its unescaped value.
@@ -338,10 +340,10 @@ module Crass
         if value.downcase == 'url'
           consume_url
         else
-          token(:function, :value => value)
+          create_token(:function, :value => value)
         end
       else
-        token(:ident, :value => value)
+        create_token(:ident, :value => value)
       end
     end
 
@@ -405,7 +407,7 @@ module Crass
       number = consume_number
 
       if start_identifier?
-        token(:dimension,
+        create_token(:dimension,
           :repr  => number[0],
           :type  => number[2],
           :unit  => consume_name,
@@ -414,12 +416,12 @@ module Crass
       elsif @s.peek == '%'
         @s.consume
 
-        token(:percentage,
+        create_token(:percentage,
           :repr  => number[0],
           :value => number[1])
 
       else
-        token(:number,
+        create_token(:number,
           :repr  => number[0],
           :type  => number[2],
           :value => number[1])
@@ -429,16 +431,18 @@ module Crass
     # Consumes a string token that ends at the given character, and returns the
     # token.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-string-token0
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-string-token
     def consume_string(ending)
       value = ''
 
-      while char = @s.consume
-        case char
-        when ending then break
+      until @s.eos?
+        case char = @s.consume
+        when ending
+          break
 
         when "\n"
-          return token(:bad_string,
+          @s.reconsume
+          return create_token(:bad_string,
             :error => true,
             :value => value)
 
@@ -452,7 +456,7 @@ module Crass
             @s.consume
 
           else
-            value += consume_escaped
+            value << consume_escaped
           end
 
         else
@@ -460,7 +464,7 @@ module Crass
         end
       end
 
-      token(:string, :value => value)
+      create_token(:string, :value => value)
     end
 
     # Consumes a Unicode range token and returns it. Assumes the initial "u+" or
@@ -480,7 +484,7 @@ module Crass
       if value.include?('?')
         range[:start] = value.gsub('?', '0').hex
         range[:end]   = value.gsub('?', 'F').hex
-        return token(:unicode_range, range)
+        return create_token(:unicode_range, range)
       end
 
       range[:start] = value.hex
@@ -492,25 +496,31 @@ module Crass
         range[:end] = range[:start]
       end
 
-      token(:unicode_range, range)
+      create_token(:unicode_range, range)
     end
 
     # Consumes a URL token and returns it. Assumes the original "url(" has
     # already been consumed.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-url-token0
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-url-token
     def consume_url
       value = ''
 
       @s.scan(RE_WHITESPACE)
-      return token(:url, :value => value) if @s.eos?
+
+      if @s.eos?
+        return create_token(:url, :value => value)
+      end
 
       # Quoted URL.
-      if @s.peek =~ RE_URL_QUOTE
+      next_char = @s.peek
+
+      if next_char == "'" || next_char == '"'
         string = consume_string(@s.consume)
 
         if string[:node] == :bad_string
-          return token(:bad_url, :value => string[:value] + consume_bad_url)
+          return create_token(:bad_url,
+            :value => string[:value] + consume_bad_url)
         end
 
         value = string[:value]
@@ -518,16 +528,17 @@ module Crass
 
         if @s.eos? || @s.peek == ')'
           @s.consume
-          return token(:url, :value => value)
+          return create_token(:url, :value => value)
         else
-          return token(:bad_url, :value => value + consume_bad_url)
+          return create_token(:bad_url, :value => value + consume_bad_url)
         end
       end
 
       # Unquoted URL.
-      while !@s.eos?
+      until @s.eos?
         case char = @s.consume
-        when ')' then break
+        when ')'
+          break
 
         when RE_WHITESPACE
           @s.scan(RE_WHITESPACE)
@@ -536,19 +547,19 @@ module Crass
             @s.consume
             break
           else
-            return token(:bad_url, :value => value + consume_bad_url)
+            return create_token(:bad_url, :value => value + consume_bad_url)
           end
 
         when '"', "'", '(', RE_NON_PRINTABLE
-          return token(:bad_url,
+          return create_token(:bad_url,
             :error => true,
             :value => value + consume_bad_url)
 
         when '\\'
-          if valid_escape?
+          if valid_escape?(char + @s.peek)
             value << consume_escaped
           else
-            return token(:bad_url,
+            return create_token(:bad_url,
               :error => true,
               :value => value + consume_bad_url
             )
@@ -559,7 +570,7 @@ module Crass
         end
       end
 
-      token(:url, :value => value)
+      create_token(:url, :value => value)
     end
 
     # Converts a valid CSS number string into a number and returns the number.
@@ -578,6 +589,15 @@ module Crass
       # I know this looks nutty, but it's exactly what's defined in the spec,
       # and it works.
       s * (i + f * 10**-d) * 10**(t * e)
+    end
+
+    # Creates and returns a new token with the given _properties_.
+    def create_token(type, properties = {})
+      {
+        :node => type,
+        :pos  => @s.marker,
+        :raw  => @s.marked
+      }.merge!(properties)
     end
 
     # Preprocesses _input_ to prepare it for the tokenizer.
@@ -639,25 +659,14 @@ module Crass
       end
     end
 
-    # Creates and returns a new token with the given _properties_.
-    def token(type, properties = {})
-      {
-        :node => type,
-        :pos  => @s.marker,
-        :raw  => @s.marked
-      }.merge!(properties)
-    end
-
     # Tokenizes the input stream and returns an array of tokens.
     def tokenize
       @s.reset
 
       tokens = []
-      token  = consume
 
-      while token && token[:node] != :eof
+      while token = consume
         tokens << token
-        token = consume
       end
 
       tokens

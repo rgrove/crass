@@ -31,9 +31,12 @@ module Crass
     # Consumes the next character and returns it, advancing the pointer, or
     # an empty string if the end of the string has been reached.
     def consume
-      @current = @scanner.getch || ''
-      @pos += 1 if @current
-      @current
+      if @pos == @len
+        ''
+      else
+        @pos += 1
+        @current = @scanner.getch
+      end
     end
 
     # Consumes the rest of the string and returns it, advancing the pointer to

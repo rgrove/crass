@@ -222,5 +222,327 @@ describe 'Crass::Tokenizer' do
     ], tokens)
   end
 
+  it 'should tokenize at-rules' do
+    tokens = CT.tokenize("@media0 @-Media @--media @-\\-media @0media @-0media @_media @.media @medİa @\\30 media\\")
+
+    assert_equal([
+      {:node=>:at_keyword, :pos=>0, :raw=>"@media0", :value=>"media0"},
+      {:node=>:whitespace, :pos=>7, :raw=>" "},
+      {:node=>:at_keyword, :pos=>8, :raw=>"@-Media", :value=>"-Media"},
+      {:node=>:whitespace, :pos=>15, :raw=>" "},
+      {:node=>:delim, :pos=>16, :raw=>"@", :value=>"@"},
+      {:node=>:delim, :pos=>17, :raw=>"-", :value=>"-"},
+      {:node=>:ident, :pos=>18, :raw=>"-media", :value=>"-media"},
+      {:node=>:whitespace, :pos=>24, :raw=>" "},
+      {:node=>:at_keyword, :pos=>25, :raw=>"@-\\-media", :value=>"--media"},
+      {:node=>:whitespace, :pos=>34, :raw=>" "},
+      {:node=>:delim, :pos=>35, :raw=>"@", :value=>"@"},
+      {:node=>:dimension,
+       :pos=>36,
+       :raw=>"0media",
+       :repr=>"0",
+       :type=>:integer,
+       :unit=>"media",
+       :value=>0},
+      {:node=>:whitespace, :pos=>42, :raw=>" "},
+      {:node=>:delim, :pos=>43, :raw=>"@", :value=>"@"},
+      {:node=>:dimension,
+       :pos=>44,
+       :raw=>"-0media",
+       :repr=>"-0",
+       :type=>:integer,
+       :unit=>"media",
+       :value=>0},
+      {:node=>:whitespace, :pos=>51, :raw=>" "},
+      {:node=>:at_keyword, :pos=>52, :raw=>"@_media", :value=>"_media"},
+      {:node=>:whitespace, :pos=>59, :raw=>" "},
+      {:node=>:delim, :pos=>60, :raw=>"@", :value=>"@"},
+      {:node=>:delim, :pos=>61, :raw=>".", :value=>"."},
+      {:node=>:ident, :pos=>62, :raw=>"media", :value=>"media"},
+      {:node=>:whitespace, :pos=>67, :raw=>" "},
+      {:node=>:at_keyword, :pos=>68, :raw=>"@medİa", :value=>"medİa"},
+      {:node=>:whitespace, :pos=>74, :raw=>" "},
+      {:node=>:at_keyword, :pos=>75, :raw=>"@\\30 media\\", :value=>"0media\uFFFD"}
+    ], tokens)
+  end
+
+  it 'should tokenize hashes' do
+    tokens = CT.tokenize("#red0 #-Red #--red #-\\-red #0red #-0red #_Red #.red #rêd #\\.red\\")
+
+    assert_equal([
+      {:node=>:hash, :pos=>0, :raw=>"#red0", :type=>:id, :value=>"red0"},
+      {:node=>:whitespace, :pos=>5, :raw=>" "},
+      {:node=>:hash, :pos=>6, :raw=>"#-Red", :type=>:id, :value=>"-Red"},
+      {:node=>:whitespace, :pos=>11, :raw=>" "},
+      {:node=>:hash,
+       :pos=>12,
+       :raw=>"#--red",
+       :type=>:unrestricted,
+       :value=>"--red"},
+      {:node=>:whitespace, :pos=>18, :raw=>" "},
+      {:node=>:hash, :pos=>19, :raw=>"#-\\-red", :type=>:id, :value=>"--red"},
+      {:node=>:whitespace, :pos=>26, :raw=>" "},
+      {:node=>:hash, :pos=>27, :raw=>"#0red", :type=>:unrestricted, :value=>"0red"},
+      {:node=>:whitespace, :pos=>32, :raw=>" "},
+      {:node=>:hash,
+       :pos=>33,
+       :raw=>"#-0red",
+       :type=>:unrestricted,
+       :value=>"-0red"},
+      {:node=>:whitespace, :pos=>39, :raw=>" "},
+      {:node=>:hash, :pos=>40, :raw=>"#_Red", :type=>:id, :value=>"_Red"},
+      {:node=>:whitespace, :pos=>45, :raw=>" "},
+      {:node=>:delim, :pos=>46, :raw=>"#", :value=>"#"},
+      {:node=>:delim, :pos=>47, :raw=>".", :value=>"."},
+      {:node=>:ident, :pos=>48, :raw=>"red", :value=>"red"},
+      {:node=>:whitespace, :pos=>51, :raw=>" "},
+      {:node=>:hash, :pos=>52, :raw=>"#rêd", :type=>:id, :value=>"rêd"},
+      {:node=>:whitespace, :pos=>56, :raw=>" "},
+      {:node=>:hash, :pos=>57, :raw=>"#\\.red\\", :type=>:id, :value=>".red\uFFFD"}
+    ], tokens)
+  end
+
+  it 'should tokenize strings containing escaped newlines' do
+    tokens = CT.tokenize("p[example=\"\\\nfoo(int x) {\\\n   this.x = x;\\\n}\\\n\"]")
+
+    assert_equal([
+      {:node=>:ident, :pos=>0, :raw=>"p", :value=>"p"},
+      {:node=>:"[", :pos=>1, :raw=>"["},
+      {:node=>:ident, :pos=>2, :raw=>"example", :value=>"example"},
+      {:node=>:delim, :pos=>9, :raw=>"=", :value=>"="},
+      {:node=>:string,
+       :pos=>10,
+       :raw=>"\"\\\nfoo(int x) {\\\n   this.x = x;\\\n}\\\n\"",
+       :value=>"foo(int x) {   this.x = x;}"},
+      {:node=>:"]", :pos=>47, :raw=>"]"}
+    ], tokens)
+  end
+
+  it 'should not choke on bad single-quoted strings' do
+    tokens = CT.tokenize("'' 'Lorem \"îpsum\"' 'a\\\nb' 'a\nb 'eof")
+
+    assert_equal([
+      {:node=>:string, :pos=>0, :raw=>"''", :value=>""},
+      {:node=>:whitespace, :pos=>2, :raw=>" "},
+      {:node=>:string,
+       :pos=>3,
+       :raw=>"'Lorem \"îpsum\"'",
+       :value=>"Lorem \"îpsum\""},
+      {:node=>:whitespace, :pos=>18, :raw=>" "},
+      {:node=>:string, :pos=>19, :raw=>"'a\\\nb'", :value=>"ab"},
+      {:node=>:whitespace, :pos=>25, :raw=>" "},
+      {:node=>:bad_string, :pos=>26, :raw=>"'a", :error=>true, :value=>"a"},
+      {:node=>:whitespace, :pos=>28, :raw=>"\n"},
+      {:node=>:ident, :pos=>29, :raw=>"b", :value=>"b"},
+      {:node=>:whitespace, :pos=>30, :raw=>" "},
+      {:node=>:string, :pos=>31, :raw=>"'eof", :value=>"eof"}
+    ], tokens)
+  end
+
+  it 'should not choke on bad double-quoted strings' do
+    tokens = CT.tokenize("\"\" \"Lorem 'îpsum'\" \"a\\\nb\" \"a\nb \"eof")
+
+    assert_equal([
+      {:node=>:string, :pos=>0, :raw=>"\"\"", :value=>""},
+      {:node=>:whitespace, :pos=>2, :raw=>" "},
+      {:node=>:string, :pos=>3, :raw=>"\"Lorem 'îpsum'\"", :value=>"Lorem 'îpsum'"},
+      {:node=>:whitespace, :pos=>18, :raw=>" "},
+      {:node=>:string, :pos=>19, :raw=>"\"a\\\nb\"", :value=>"ab"},
+      {:node=>:whitespace, :pos=>25, :raw=>" "},
+      {:node=>:bad_string, :pos=>26, :raw=>"\"a", :error=>true, :value=>"a"},
+      {:node=>:whitespace, :pos=>28, :raw=>"\n"},
+      {:node=>:ident, :pos=>29, :raw=>"b", :value=>"b"},
+      {:node=>:whitespace, :pos=>30, :raw=>" "},
+      {:node=>:string, :pos=>31, :raw=>"\"eof", :value=>"eof"}
+    ], tokens)
+  end
+
+  it 'should tokenize escapes within strings' do
+    tokens = CT.tokenize("\"Lo\\rem \\130 ps\\u m\" '\\376\\37 6\\000376\\0000376\\")
+
+    assert_equal([
+      {:node=>:string,
+       :pos=>0,
+       :raw=>"\"Lo\\rem \\130 ps\\u m\"",
+       :value=>"Lorem İpsu m"},
+      {:node=>:whitespace, :pos=>20, :raw=>" "},
+      {:node=>:string,
+       :pos=>21,
+       :raw=>"'\\376\\37 6\\000376\\0000376\\",
+       :value=>"Ͷ76Ͷ76"}
+    ], tokens)
+  end
+
+  it 'should tokenize URLs with single quotes' do
+    tokens = CT.tokenize("url( '') url('Lorem \"îpsum\"'\n) url('a\\\nb' ) url('a\nb' \\){ ) url('eof")
+
+    assert_equal([
+      {:node=>:url, :pos=>0, :raw=>"url( '')", :value=>""},
+      {:node=>:whitespace, :pos=>8, :raw=>" "},
+      {:node=>:url,
+       :pos=>9,
+       :raw=>"url('Lorem \"îpsum\"'\n)",
+       :value=>"Lorem \"îpsum\""},
+      {:node=>:whitespace, :pos=>30, :raw=>" "},
+      {:node=>:url, :pos=>31, :raw=>"url('a\\\nb' )", :value=>"ab"},
+      {:node=>:whitespace, :pos=>43, :raw=>" "},
+      {:node=>:bad_url, :pos=>44, :raw=>"url('a\nb' \\){ )", :value=>"a\nb' ){ "},
+      {:node=>:whitespace, :pos=>59, :raw=>" "},
+      {:node=>:url, :pos=>60, :raw=>"url('eof", :value=>"eof"}
+    ], tokens)
+  end
+
+  it 'should tokenize an empty, unclosed URL' do
+    tokens = CT.tokenize("url(")
+
+    assert_equal([
+      {:node=>:url, :pos=>0, :raw=>"url(", :value=>""}
+    ], tokens)
+  end
+
+  it 'should tokenize an unclosed URL containing a tab' do
+    tokens = CT.tokenize("url( \t")
+
+    assert_equal([
+      {:node=>:url, :pos=>0, :raw=>"url( \t", :value=>""}
+    ], tokens)
+  end
+
+  it 'should tokenize URLs with double quotes' do
+    tokens = CT.tokenize("url(\"\") url(\"Lorem 'îpsum'\"\n) url(\"a\\\nb\" ) url(\"a\nb\" \\){ ) url(\"eof")
+
+    assert_equal([
+      {:node=>:url, :pos=>0, :raw=>"url(\"\")", :value=>""},
+      {:node=>:whitespace, :pos=>7, :raw=>" "},
+      {:node=>:url,
+       :pos=>8,
+       :raw=>"url(\"Lorem 'îpsum'\"\n)",
+       :value=>"Lorem 'îpsum'"},
+      {:node=>:whitespace, :pos=>29, :raw=>" "},
+      {:node=>:url, :pos=>30, :raw=>"url(\"a\\\nb\" )", :value=>"ab"},
+      {:node=>:whitespace, :pos=>42, :raw=>" "},
+      {:node=>:bad_url,
+       :pos=>43,
+       :raw=>"url(\"a\nb\" \\){ )",
+       :value=>"a\nb\" ){ "},
+      {:node=>:whitespace, :pos=>58, :raw=>" "},
+      {:node=>:url, :pos=>59, :raw=>"url(\"eof", :value=>"eof"}
+    ], tokens)
+  end
+
+  it 'should tokenize URLs containing escapes' do
+    tokens = CT.tokenize("url(\"Lo\\rem \\130 ps\\u m\") url('\\376\\37 6\\000376\\0000376\\")
+
+    assert_equal([
+      {:node=>:url,
+       :pos=>0,
+       :raw=>"url(\"Lo\\rem \\130 ps\\u m\")",
+       :value=>"Lorem İpsu m"},
+      {:node=>:whitespace, :pos=>25, :raw=>" "},
+      {:node=>:url,
+       :pos=>26,
+       :raw=>"url('\\376\\37 6\\000376\\0000376\\",
+       :value=>"Ͷ76Ͷ76"}
+    ], tokens)
+  end
+
+  it 'should tokenize unquoted URLs in a case-insensitive manner' do
+    tokens = CT.tokenize("URL(foo) Url(foo) ûrl(foo) url (foo) url\\ (foo) url(\t 'foo' ")
+
+    assert_equal([
+      {:node=>:url, :pos=>0, :raw=>"URL(foo)", :value=>"foo"},
+      {:node=>:whitespace, :pos=>8, :raw=>" "},
+      {:node=>:url, :pos=>9, :raw=>"Url(foo)", :value=>"foo"},
+      {:node=>:whitespace, :pos=>17, :raw=>" "},
+      {:node=>:function, :pos=>18, :raw=>"ûrl(", :value=>"ûrl"},
+      {:node=>:ident, :pos=>22, :raw=>"foo", :value=>"foo"},
+      {:node=>:")", :pos=>25, :raw=>")"},
+      {:node=>:whitespace, :pos=>26, :raw=>" "},
+      {:node=>:ident, :pos=>27, :raw=>"url", :value=>"url"},
+      {:node=>:whitespace, :pos=>30, :raw=>" "},
+      {:node=>:"(", :pos=>31, :raw=>"("},
+      {:node=>:ident, :pos=>32, :raw=>"foo", :value=>"foo"},
+      {:node=>:")", :pos=>35, :raw=>")"},
+      {:node=>:whitespace, :pos=>36, :raw=>" "},
+      {:node=>:function, :pos=>37, :raw=>"url\\ (", :value=>"url "},
+      {:node=>:ident, :pos=>43, :raw=>"foo", :value=>"foo"},
+      {:node=>:")", :pos=>46, :raw=>")"},
+      {:node=>:whitespace, :pos=>47, :raw=>" "},
+      {:node=>:url, :pos=>48, :raw=>"url(\t 'foo' ", :value=>"foo"}
+    ], tokens)
+  end
+
+  it 'should tokenize bad URLs with extra content after the quoted segment' do
+    tokens = CT.tokenize("url('a' b) url('c' d)")
+
+    assert_equal([
+      {:node=>:bad_url, :pos=>0, :raw=>"url('a' b)", :value=>"ab"},
+      {:node=>:whitespace, :pos=>10, :raw=>" "},
+      {:node=>:bad_url, :pos=>11, :raw=>"url('c' d)", :value=>"cd"}
+    ], tokens)
+  end
+
+  it 'should tokenize bad URLs with newlines in the quoted segment' do
+    tokens = CT.tokenize("url('a\nb') url('c\n")
+
+    assert_equal([
+      {:node=>:bad_url, :pos=>0, :raw=>"url('a\nb')", :value=>"a\nb'"},
+      {:node=>:whitespace, :pos=>10, :raw=>" "},
+      {:node=>:bad_url, :pos=>11, :raw=>"url('c\n", :value=>"c\n"}
+    ], tokens)
+  end
+
+  it 'should tokenize a mix of URLs with valid and invalid escapes' do
+    tokens = CT.tokenize("url() url( \t) url( Foô\\030\n!\n) url(a b) url(a\\ b) url(a(b) url(a\\(b) url(a'b) url(a\\'b) url(a\"b) url(a\\\"b) url(a\nb) url(a\\\nb) url(a\\a b) url(a\\")
+
+    assert_equal([
+      {:node=>:url, :pos=>0, :raw=>"url()", :value=>""},
+      {:node=>:whitespace, :pos=>5, :raw=>" "},
+      {:node=>:url, :pos=>6, :raw=>"url( \t)", :value=>""},
+      {:node=>:whitespace, :pos=>13, :raw=>" "},
+      {:node=>:url, :pos=>14, :raw=>"url( Foô\\030\n!\n)", :value=>"Foô0!"},
+      {:node=>:whitespace, :pos=>30, :raw=>" "},
+      {:node=>:bad_url, :pos=>31, :raw=>"url(a b)", :value=>"ab"},
+      {:node=>:whitespace, :pos=>39, :raw=>" "},
+      {:node=>:url, :pos=>40, :raw=>"url(a\\ b)", :value=>"a b"},
+      {:node=>:whitespace, :pos=>49, :raw=>" "},
+      {:node=>:bad_url, :pos=>50, :raw=>"url(a(b)", :error=>true, :value=>"ab"},
+      {:node=>:whitespace, :pos=>58, :raw=>" "},
+      {:node=>:url, :pos=>59, :raw=>"url(a\\(b)", :value=>"a(b"},
+      {:node=>:whitespace, :pos=>68, :raw=>" "},
+      {:node=>:bad_url, :pos=>69, :raw=>"url(a'b)", :error=>true, :value=>"ab"},
+      {:node=>:whitespace, :pos=>77, :raw=>" "},
+      {:node=>:url, :pos=>78, :raw=>"url(a\\'b)", :value=>"a'b"},
+      {:node=>:whitespace, :pos=>87, :raw=>" "},
+      {:node=>:bad_url, :pos=>88, :raw=>"url(a\"b)", :error=>true, :value=>"ab"},
+      {:node=>:whitespace, :pos=>96, :raw=>" "},
+      {:node=>:url, :pos=>97, :raw=>"url(a\\\"b)", :value=>"a\"b"},
+      {:node=>:whitespace, :pos=>106, :raw=>" "},
+      {:node=>:bad_url, :pos=>107, :raw=>"url(a\nb)", :value=>"ab"},
+      {:node=>:whitespace, :pos=>115, :raw=>" "},
+      {:node=>:bad_url,
+       :pos=>116,
+       :raw=>"url(a\\\nb)",
+       :error=>true,
+       :value=>"a\nb"},
+      {:node=>:whitespace, :pos=>125, :raw=>" "},
+      {:node=>:url, :pos=>126, :raw=>"url(a\\a b)", :value=>"a\nb"},
+      {:node=>:whitespace, :pos=>136, :raw=>" "},
+      {:node=>:url, :pos=>137, :raw=>"url(a\\", :value=>"a\uFFFD"}
+    ], tokens)
+  end
+
+  it 'should tokenize a longass unquoted, unclosed URL' do
+    tokens = CT.tokenize("url(\u0000!\#$%&*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~\u0080\u0081\u009e\u009f\u00a0\u00a1\u00a2")
+
+    assert_equal([
+      {:node=>:url,
+       :pos=>0,
+       :raw=>
+        "url(\uFFFD!\#$%&*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~\u0080\u0081\u009E\u009F ¡¢",
+       :value=>
+        "\uFFFD!\#$%&*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~\u0080\u0081\u009e\u009f\u00a0¡¢"}
+    ], tokens)
+  end
 end
 
