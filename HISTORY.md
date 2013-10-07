@@ -4,6 +4,9 @@ Crass Change History
 git
 ---
 
+* Added a `:children` field to `:property` nodes. It's an array containing all
+  the nodes that make up the property's value.
+
 * Fixed: Incorrect value was given for `:property` nodes whose values contained
   functions.
 

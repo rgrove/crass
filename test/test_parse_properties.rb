@@ -40,6 +40,10 @@ describe 'Crass::Parser' do
       assert_equal(false, prop[:important])
       assert_tokens("a:b;", prop[:tokens])
 
+      assert_equal([
+        {:node=>:ident, :pos=>2, :raw=>"b", :value=>"b"}
+      ], prop[:children])
+
       assert_tokens(" ", tree[1], 4)
 
       prop = tree[2]
@@ -48,6 +52,17 @@ describe 'Crass::Parser' do
       assert_equal("d 42", prop[:value])
       assert_equal(true, prop[:important])
       assert_tokens("c:d 42!important;", prop[:tokens], 5)
+
+      assert_equal([
+        {:node=>:ident, :pos=>7, :raw=>"d", :value=>"d"},
+        {:node=>:whitespace, :pos=>8, :raw=>" "},
+        {:node=>:number,
+         :pos=>9,
+         :raw=>"42",
+         :repr=>"42",
+         :type=>:integer,
+         :value=>42}
+      ], prop[:children])
 
       assert_tokens("\n", tree[3], 22)
     end
@@ -70,6 +85,10 @@ describe 'Crass::Parser' do
       assert_equal("b", prop[:value])
       assert_equal(false, prop[:important])
       assert_tokens("a:b;", prop[:tokens], 19)
+
+      assert_equal([
+        {:node=>:ident, :pos=>21, :raw=>"b", :value=>"b"}
+      ], prop[:children])
 
       assert_tokens(" ", tree[3], 23)
 
@@ -115,6 +134,9 @@ describe 'Crass::Parser' do
       assert_equal("b", prop[:value])
       assert_equal(false, prop[:important])
       assert_tokens("a:b;", prop[:tokens], 24)
+      assert_equal([
+        {:node=>:ident, :pos=>26, :raw=>"b", :value=>"b"}
+      ], prop[:children])
 
       assert_tokens("; ", tree[3..4], 28)
 
@@ -180,6 +202,13 @@ describe 'Crass::Parser' do
          :name=>"content",
          :value=>"attr(data-foo) \" \"",
          :important=>false,
+         :children=>
+          [{:node=>:whitespace, :pos=>8, :raw=>" "},
+           {:node=>:function, :pos=>9, :raw=>"attr(", :value=>"attr"},
+           {:node=>:ident, :pos=>14, :raw=>"data-foo", :value=>"data-foo"},
+           {:node=>:")", :pos=>22, :raw=>")"},
+           {:node=>:whitespace, :pos=>23, :raw=>" "},
+           {:node=>:string, :pos=>24, :raw=>"\" \"", :value=>" "}],
          :tokens=>
           [{:node=>:ident, :pos=>0, :raw=>"content", :value=>"content"},
            {:node=>:colon, :pos=>7, :raw=>":"},
@@ -201,6 +230,18 @@ describe 'Crass::Parser' do
          :name=>"width",
          :value=>"expression(alert(1))",
          :important=>false,
+         :children=>
+          [{:node=>:whitespace, :pos=>6, :raw=>" "},
+           {:node=>:function, :pos=>7, :raw=>"expression(", :value=>"expression"},
+           {:node=>:function, :pos=>18, :raw=>"alert(", :value=>"alert"},
+           {:node=>:number,
+            :pos=>24,
+            :raw=>"1",
+            :repr=>"1",
+            :type=>:integer,
+            :value=>1},
+           {:node=>:")", :pos=>25, :raw=>")"},
+           {:node=>:")", :pos=>26, :raw=>")"}],
          :tokens=>
           [{:node=>:ident, :pos=>0, :raw=>"width", :value=>"width"},
            {:node=>:colon, :pos=>5, :raw=>":"},

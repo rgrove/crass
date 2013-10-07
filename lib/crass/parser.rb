@@ -435,9 +435,13 @@ module Crass
           next
         end
 
+        children = decl[:value].dup
+        children.pop if children.last[:node] == :semicolon
+
         properties << create_node(:property,
           :name      => decl[:name],
           :value     => parse_value(decl[:value]),
+          :children  => children,
           :important => decl[:important] == true,
           :tokens    => decl[:tokens])
       end

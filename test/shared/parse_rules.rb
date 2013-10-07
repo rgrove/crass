@@ -188,6 +188,11 @@ shared_tests_for 'parsing a list of rules' do
       assert_equal("#aaa", property[:value])
       assert_equal(false, property[:important])
       assert_tokens("color: #aaa;", property[:tokens], 16)
+
+      assert_equal([
+        {:node=>:whitespace, :pos=>22, :raw=>" "},
+        {:node=>:hash, :pos=>23, :raw=>"#aaa", :type=>:id, :value=>"aaa"},
+      ], property[:children])
     end
 
     it 'with preceding comment, selector, block, comment, when :preserve_comments == true' do
@@ -217,6 +222,11 @@ shared_tests_for 'parsing a list of rules' do
       assert_equal("#aaa", property[:value])
       assert_equal(false, property[:important])
       assert_tokens("color: #aaa;", property[:tokens], 16, options)
+
+      assert_equal([
+        {:node=>:whitespace, :pos=>22, :raw=>" "},
+        {:node=>:hash, :pos=>23, :raw=>"#aaa", :type=>:id, :value=>"aaa"}
+      ], property[:children])
     end
 
     it 'unclosed, with preceding comment, no selector' do
@@ -243,6 +253,12 @@ shared_tests_for 'parsing a list of rules' do
       assert_equal("#aaa", property[:value])
       assert_equal(false, property[:important])
       assert_tokens("color: #aaa  ", property[:tokens], 8)
+
+      assert_equal([
+        {:node=>:whitespace, :pos=>14, :raw=>" "},
+        {:node=>:hash, :pos=>15, :raw=>"#aaa", :type=>:id, :value=>"aaa"},
+        {:node=>:whitespace, :pos=>19, :raw=>"  "}
+      ], property[:children])
     end
 
     it 'unclosed, with preceding comment, no selector, when :preserve_comments == true' do
@@ -270,6 +286,12 @@ shared_tests_for 'parsing a list of rules' do
       assert_equal("#aaa", property[:value])
       assert_equal(false, property[:important])
       assert_tokens("color: #aaa  ", property[:tokens], 8, options)
+
+      assert_equal([
+        {:node=>:whitespace, :pos=>14, :raw=>" "},
+        {:node=>:hash, :pos=>15, :raw=>"#aaa", :type=>:id, :value=>"aaa"},
+        {:node=>:whitespace, :pos=>19, :raw=>"  "}
+      ], property[:children])
     end
   end
 
@@ -297,6 +319,11 @@ shared_tests_for 'parsing a list of rules' do
     assert_equal("#aaa", prop[:value])
     assert_equal(false, prop[:important])
     assert_tokens("color: #aaa;", prop[:tokens], 6)
+
+    assert_equal([
+      {:node=>:whitespace, :pos=>12, :raw=>" "},
+      {:node=>:hash, :pos=>13, :raw=>"#aaa", :type=>:id, :value=>"aaa"}
+    ], prop[:children])
 
     assert_tokens(" ", tree[1], 20)
 
@@ -362,6 +389,18 @@ shared_tests_for 'parsing a list of rules' do
           :name=>"content",
           :value=>"attr(data-foo) \" \"",
           :important=>false,
+          :children=>
+           [{:node=>:whitespace, :pos=>19, :raw=>" "},
+            {:node=>:function,
+             :name=>"attr",
+             :value=>
+              [{:node=>:ident, :pos=>26, :raw=>"data-foo", :value=>"data-foo"}],
+             :tokens=>
+              [{:node=>:function, :pos=>20, :raw=>"a\\ttr(", :value=>"attr"},
+               {:node=>:ident, :pos=>26, :raw=>"data-foo", :value=>"data-foo"},
+               {:node=>:")", :pos=>34, :raw=>")"}]},
+            {:node=>:whitespace, :pos=>35, :raw=>" "},
+            {:node=>:string, :pos=>36, :raw=>"\" \"", :value=>" "}],
           :tokens=>
            [{:node=>:ident, :pos=>11, :raw=>"content", :value=>"content"},
             {:node=>:colon, :pos=>18, :raw=>":"},
@@ -398,6 +437,43 @@ shared_tests_for 'parsing a list of rules' do
           :name=>"width",
           :value=>"expression(alert(1))",
           :important=>false,
+          :children=>
+           [{:node=>:whitespace, :pos=>12, :raw=>" "},
+            {:node=>:function,
+             :name=>"expression",
+             :value=>
+              [{:node=>:function,
+                :name=>"alert",
+                :value=>
+                 [{:node=>:number,
+                   :pos=>33,
+                   :raw=>"1",
+                   :repr=>"1",
+                   :type=>:integer,
+                   :value=>1}],
+                :tokens=>
+                 [{:node=>:function, :pos=>27, :raw=>"alert(", :value=>"alert"},
+                  {:node=>:number,
+                   :pos=>33,
+                   :raw=>"1",
+                   :repr=>"1",
+                   :type=>:integer,
+                   :value=>1},
+                  {:node=>:")", :pos=>34, :raw=>")"}]}],
+             :tokens=>
+              [{:node=>:function,
+                :pos=>13,
+                :raw=>"e\\78 pression(",
+                :value=>"expression"},
+               {:node=>:function, :pos=>27, :raw=>"alert(", :value=>"alert"},
+               {:node=>:number,
+                :pos=>33,
+                :raw=>"1",
+                :repr=>"1",
+                :type=>:integer,
+                :value=>1},
+               {:node=>:")", :pos=>34, :raw=>")"},
+               {:node=>:")", :pos=>35, :raw=>")"}]}],
           :tokens=>
            [{:node=>:ident, :pos=>6, :raw=>"width", :value=>"width"},
             {:node=>:colon, :pos=>11, :raw=>":"},
