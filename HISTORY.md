@@ -1,6 +1,13 @@
 Crass Change History
 ====================
 
+git
+---
+
+* Fixed: Incorrect value was given for `:property` nodes whose values contained
+  functions.
+
+
 0.1.0 (2013-10-04)
 ------------------
 

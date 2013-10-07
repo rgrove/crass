@@ -171,5 +171,52 @@ describe 'Crass::Parser' do
       assert_equal([], block[:value])
       assert_tokens("{", block[:tokens], 47)
     end
+
+    it 'should parse values containing functions' do
+      tree = parse("content: attr(data-foo) \" \";")
+
+      assert_equal([
+        {:node=>:property,
+         :name=>"content",
+         :value=>"attr(data-foo) \" \"",
+         :important=>false,
+         :tokens=>
+          [{:node=>:ident, :pos=>0, :raw=>"content", :value=>"content"},
+           {:node=>:colon, :pos=>7, :raw=>":"},
+           {:node=>:whitespace, :pos=>8, :raw=>" "},
+           {:node=>:function, :pos=>9, :raw=>"attr(", :value=>"attr"},
+           {:node=>:ident, :pos=>14, :raw=>"data-foo", :value=>"data-foo"},
+           {:node=>:")", :pos=>22, :raw=>")"},
+           {:node=>:whitespace, :pos=>23, :raw=>" "},
+           {:node=>:string, :pos=>24, :raw=>"\" \"", :value=>" "},
+           {:node=>:semicolon, :pos=>27, :raw=>";"}]}
+        ], tree)
+    end
+
+    it 'should parse values containing nested functions' do
+      tree = parse("width: expression(alert(1));")
+
+      assert_equal([
+        {:node=>:property,
+         :name=>"width",
+         :value=>"expression(alert(1))",
+         :important=>false,
+         :tokens=>
+          [{:node=>:ident, :pos=>0, :raw=>"width", :value=>"width"},
+           {:node=>:colon, :pos=>5, :raw=>":"},
+           {:node=>:whitespace, :pos=>6, :raw=>" "},
+           {:node=>:function, :pos=>7, :raw=>"expression(", :value=>"expression"},
+           {:node=>:function, :pos=>18, :raw=>"alert(", :value=>"alert"},
+           {:node=>:number,
+            :pos=>24,
+            :raw=>"1",
+            :repr=>"1",
+            :type=>:integer,
+            :value=>1},
+           {:node=>:")", :pos=>25, :raw=>")"},
+           {:node=>:")", :pos=>26, :raw=>")"},
+           {:node=>:semicolon, :pos=>27, :raw=>";"}]}
+        ], tree)
+    end
   end
 end

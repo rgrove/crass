@@ -342,4 +342,103 @@ shared_tests_for 'parsing a list of rules' do
     assert_equal([], rule[:prelude])
     assert_tokens("@a", rule[:tokens], 2)
   end
+
+  it 'should parse property values containing functions' do
+    tree = parse("p:before { content: a\\ttr(data-foo) \" \"; }")
+
+    assert_equal([
+      {:node=>:style_rule,
+       :selector=>
+        {:node=>:selector,
+         :value=>"p:before",
+         :tokens=>
+          [{:node=>:ident, :pos=>0, :raw=>"p", :value=>"p"},
+           {:node=>:colon, :pos=>1, :raw=>":"},
+           {:node=>:ident, :pos=>2, :raw=>"before", :value=>"before"},
+           {:node=>:whitespace, :pos=>8, :raw=>" "}]},
+       :children=>
+        [{:node=>:whitespace, :pos=>10, :raw=>" "},
+         {:node=>:property,
+          :name=>"content",
+          :value=>"attr(data-foo) \" \"",
+          :important=>false,
+          :tokens=>
+           [{:node=>:ident, :pos=>11, :raw=>"content", :value=>"content"},
+            {:node=>:colon, :pos=>18, :raw=>":"},
+            {:node=>:whitespace, :pos=>19, :raw=>" "},
+            {:node=>:function,
+             :name=>"attr",
+             :value=>
+              [{:node=>:ident, :pos=>26, :raw=>"data-foo", :value=>"data-foo"}],
+             :tokens=>
+              [{:node=>:function, :pos=>20, :raw=>"a\\ttr(", :value=>"attr"},
+               {:node=>:ident, :pos=>26, :raw=>"data-foo", :value=>"data-foo"},
+               {:node=>:")", :pos=>34, :raw=>")"}]},
+            {:node=>:whitespace, :pos=>35, :raw=>" "},
+            {:node=>:string, :pos=>36, :raw=>"\" \"", :value=>" "},
+            {:node=>:semicolon, :pos=>39, :raw=>";"}]},
+         {:node=>:whitespace, :pos=>40, :raw=>" "}]}
+      ], tree)
+  end
+
+  it 'should parse property values containing nested functions' do
+    tree = parse("div { width: e\\78 pression(alert(1)); }")
+
+    assert_equal([
+      {:node=>:style_rule,
+       :selector=>
+        {:node=>:selector,
+         :value=>"div",
+         :tokens=>
+          [{:node=>:ident, :pos=>0, :raw=>"div", :value=>"div"},
+           {:node=>:whitespace, :pos=>3, :raw=>" "}]},
+       :children=>
+        [{:node=>:whitespace, :pos=>5, :raw=>" "},
+         {:node=>:property,
+          :name=>"width",
+          :value=>"expression(alert(1))",
+          :important=>false,
+          :tokens=>
+           [{:node=>:ident, :pos=>6, :raw=>"width", :value=>"width"},
+            {:node=>:colon, :pos=>11, :raw=>":"},
+            {:node=>:whitespace, :pos=>12, :raw=>" "},
+            {:node=>:function,
+             :name=>"expression",
+             :value=>
+              [{:node=>:function,
+                :name=>"alert",
+                :value=>
+                 [{:node=>:number,
+                   :pos=>33,
+                   :raw=>"1",
+                   :repr=>"1",
+                   :type=>:integer,
+                   :value=>1}],
+                :tokens=>
+                 [{:node=>:function, :pos=>27, :raw=>"alert(", :value=>"alert"},
+                  {:node=>:number,
+                   :pos=>33,
+                   :raw=>"1",
+                   :repr=>"1",
+                   :type=>:integer,
+                   :value=>1},
+                  {:node=>:")", :pos=>34, :raw=>")"}]}],
+             :tokens=>
+              [{:node=>:function,
+                :pos=>13,
+                :raw=>"e\\78 pression(",
+                :value=>"expression"},
+               {:node=>:function, :pos=>27, :raw=>"alert(", :value=>"alert"},
+               {:node=>:number,
+                :pos=>33,
+                :raw=>"1",
+                :repr=>"1",
+                :type=>:integer,
+                :value=>1},
+               {:node=>:")", :pos=>34, :raw=>")"},
+               {:node=>:")", :pos=>35, :raw=>")"}]},
+            {:node=>:semicolon, :pos=>36, :raw=>";"}]},
+         {:node=>:whitespace, :pos=>37, :raw=>" "}]}
+    ], tree)
+  end
 end

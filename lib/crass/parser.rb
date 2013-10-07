@@ -460,8 +460,9 @@ module Crass
         when :function
           if node[:value].is_a?(String)
             string << node[:value]
+            string << '('
           else
-            string << parse_value(node[:value])
+            string << parse_value(node[:tokens])
           end
 
         else
