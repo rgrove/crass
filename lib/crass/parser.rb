@@ -26,7 +26,7 @@ module Crass
       Parser.new(input, options).parse_properties
     end
 
-    # Parses a CSS rules (such as the content of a `@media` block) and returns a
+    # Parses CSS rules (such as the content of a `@media` block) and returns a
     # parse tree. The only difference from {#parse_stylesheet} is that CDO/CDC
     # nodes (`<!--` and `-->`) aren't ignored.
     #
