@@ -10,6 +10,10 @@ git
 * Fixed: Incorrect value was given for `:property` nodes whose values contained
   functions.
 
+* Fixed: When parsing the value of an at-rule's block as a list of rules, a
+  selector containing a function (such as "#foo:not(.bar)") would cause that
+  property and the rest of the token stream to be discarded.
+
 
 0.1.0 (2013-10-04)
 ------------------

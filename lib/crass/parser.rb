@@ -143,10 +143,13 @@ module Crass
 
         while token = input.consume
           case token[:node]
-          when :comment then next
-          when :semicolon, :eof then break
+          when :comment
+            next
 
-          when :'{' then
+          when :semicolon
+            break
+
+          when :'{'
             rule[:block] = consume_simple_block(input)
             break
 
@@ -171,14 +174,24 @@ module Crass
 
     # Consumes a component value and returns it.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-component-value0
+    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-component-value
     def consume_component_value(input = @tokens)
       return nil unless token = input.consume
 
       case token[:node]
-      when :'{', :'[', :'(' then consume_simple_block(input)
-      when :function then consume_function(input)
-      else token
+      when :'{', :'[', :'('
+        consume_simple_block(input)
+
+      when :function
+        if token.key?(:name)
+          # This is a parsed function, not a function token.
+          token
+        else
+          consume_function(input)
+        end
+
+      else
+        token
       end
     end
 
@@ -291,18 +304,21 @@ module Crass
         :tokens => [input.current]
       }
 
-      function[:tokens].concat(input.collect do
+      function[:tokens].concat(input.collect {
         while token = input.consume
           case token[:node]
-          when :')', :eof then break
-          when :comment then next
+          when :')'
+            break
+
+          when :comment
+            next
 
           else
             input.reconsume
             function[:value] << consume_component_value(input)
           end
         end
-      end)
+      })
 
       create_node(:function, function)
     end
@@ -340,12 +356,10 @@ module Crass
     def consume_rules(flags = {})
       rules = []
 
-      while true
-        return rules unless token = @tokens.consume
-
+      while token = @tokens.consume
         case token[:node]
-          when :comment, :whitespace then rules << token
-          when :eof then return rules
+          when :comment, :whitespace
+            rules << token
 
           when :cdc, :cdo
             unless flags[:top_level]
@@ -365,6 +379,8 @@ module Crass
             rules << rule if rule
         end
       end
+
+      rules
     end
 
     # Consumes and returns a simple block associated with the current input
@@ -384,7 +400,7 @@ module Crass
 
       block[:tokens].concat(input.collect do
         while token = input.consume
-          break if token[:node] == end_token || token[:node] == :eof
+          break if token[:node] == end_token
 
           input.reconsume
           block[:value] << consume_component_value(input)
@@ -456,7 +472,8 @@ module Crass
 
       nodes.each do |node|
         case node[:node]
-        when :comment, :semicolon then next
+        when :comment, :semicolon
+          next
 
         when :at_keyword, :ident
           string << node[:value]

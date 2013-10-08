@@ -52,12 +52,12 @@ describe 'Crass::Parser' do
     end
 
     it 'should parse the block of an at-rule' do
-      rule = CP.parse_stylesheet("@media (max-width: 400px) {.foo{color:#fff;}}")[0]
+      rule = CP.parse_stylesheet("@media (max-width: 400px) {#foo:not(.bar){color:#fff;}}")[0]
       assert_equal(:at_rule, rule[:node])
 
       style_rule = parse(rule[:block][:value])[0]
       assert_equal(:style_rule, style_rule[:node])
-      assert_equal(".foo", style_rule[:selector][:value])
+      assert_equal("#foo:not(.bar)", style_rule[:selector][:value])
       assert_equal(1, style_rule[:children].size)
 
       prop = style_rule[:children][0]
