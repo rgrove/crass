@@ -1,8 +1,8 @@
 Crass Change History
 ====================
 
-git
----
+0.2.0 (2013-10-10)
+------------------
 
 * Added a `:children` field to `:property` nodes. It's an array containing all
   the nodes that make up the property's value.
