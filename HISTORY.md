@@ -1,6 +1,15 @@
 Crass Change History
 ====================
 
+0.2.1 (2014-07-22)
+------------------
+
+* Fixed: Error when the last property of a rule has no value and no terminating
+  semicolon. [#2][]
+
+[#2]:https://github.com/rgrove/crass/issues/2
+
+
 0.2.0 (2013-10-10)
 ------------------
 
