@@ -260,7 +260,7 @@ describe 'Crass::Parser' do
         ], tree)
     end
 
-    it 'should handle bad css without breaking' do
+    it 'should not choke on a missing property value' do
       tree = parse("font-family:")
 
       assert_equal([
