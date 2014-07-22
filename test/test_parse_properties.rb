@@ -259,5 +259,20 @@ describe 'Crass::Parser' do
            {:node=>:semicolon, :pos=>27, :raw=>";"}]}
         ], tree)
     end
+
+    it 'should handle bad css without breaking' do
+      tree = parse("font-family:")
+
+      assert_equal([
+       {:node=>:property,
+        :name=>"font-family",
+        :value=>"",
+        :children=>[],
+        :important=>false,
+        :tokens=>
+         [{:node=>:ident, :pos=>0, :raw=>"font-family", :value=>"font-family"},
+          {:node=>:colon, :pos=>11, :raw=>":"}]}
+      ], tree)
+    end
   end
 end

@@ -452,7 +452,7 @@ module Crass
         end
 
         children = decl[:value].dup
-        children.pop if children.last[:node] == :semicolon
+        children.pop if children.last && children.last[:node] == :semicolon
 
         properties << create_node(:property,
           :name      => decl[:name],
