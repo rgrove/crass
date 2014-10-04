@@ -73,7 +73,7 @@ module Crass
     # doesn't consume them. The number of characters returned may be less than
     # _length_ if the end of the string is reached.
     def peek(length = 1)
-      @scanner.peek(length)
+      @chars[pos, length].join
     end
 
     # Moves the pointer back one character without changing the value of

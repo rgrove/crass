@@ -1,6 +1,12 @@
 Crass Change History
 ====================
 
+? (git)
+-------
+
+* Fixed: A multibyte char at the beginning of an id token could trigger an
+  encoding error because StringScanner#peek is a jerkface.
+
 0.2.1 (2014-07-22)
 ------------------
 

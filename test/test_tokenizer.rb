@@ -267,7 +267,7 @@ describe 'Crass::Tokenizer' do
   end
 
   it 'should tokenize hashes' do
-    tokens = CT.tokenize("#red0 #-Red #--red #-\\-red #0red #-0red #_Red #.red #rêd #\\.red\\")
+    tokens = CT.tokenize("#red0 #-Red #--red #-\\-red #0red #-0red #_Red #.red #rêd #êrd #\\.red\\")
 
     assert_equal([
       {:node=>:hash, :pos=>0, :raw=>"#red0", :type=>:id, :value=>"red0"},
@@ -298,7 +298,9 @@ describe 'Crass::Tokenizer' do
       {:node=>:whitespace, :pos=>51, :raw=>" "},
       {:node=>:hash, :pos=>52, :raw=>"#rêd", :type=>:id, :value=>"rêd"},
       {:node=>:whitespace, :pos=>56, :raw=>" "},
-      {:node=>:hash, :pos=>57, :raw=>"#\\.red\\", :type=>:id, :value=>".red\uFFFD"}
+      {:node=>:hash, :pos=>57, :raw=>"#êrd", :type=>:id, :value=>"êrd"},
+      {:node=>:whitespace, :pos=>61, :raw=>" "},
+      {:node=>:hash, :pos=>62, :raw=>"#\\.red\\", :type=>:id, :value=>".red\uFFFD"}
     ], tokens)
   end
 
