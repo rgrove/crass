@@ -1,8 +1,7 @@
 Crass
 =====
 
-Crass is a Ruby CSS parser based on the [CSS Syntax Level 3][css] draft
-specification.
+Crass is a Ruby CSS parser based on the [CSS Syntax Level 3][css] specification.
 
 * [Home](https://github.com/rgrove/crass/)
 * [API Docs](http://rubydoc.info/github/rgrove/crass/master)
@@ -15,8 +14,8 @@ Features
 
 * Pure Ruby, with no runtime dependencies other than Ruby 1.9.x or higher.
 
-* Tokenizes and parses CSS according to the rules defined in the 2013 draft of
-  the [CSS Syntax Level 3][css] specification.
+* Tokenizes and parses CSS according to the rules defined in the 2014-02-20
+  candidate recommendation of the [CSS Syntax Level 3][css] specification.
 
 * Extremely tolerant of broken or invalid CSS. If a browser can handle it, Crass
   should be able to handle it too.
@@ -29,7 +28,7 @@ Features
 * Capable of serializing the parse tree back to CSS while maintaining all
   original whitespace, comments, and indentation.
 
-[css]: http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/
+[css]: http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/
 
 Problems
 --------
@@ -47,10 +46,8 @@ Problems
   (except for wholesale removal of nodes) are not reflected in the serialized
   output.
 
-* At the moment, Crass only supports UTF-8 input and doesn't respect `@charset`
-  rules. Input in any other encoding will be converted to UTF-8.
-
-* Probably other things. Did I mention Crass is pretty new?
+* Crass only supports UTF-8 input and doesn't respect `@charset` rules. Input in
+  any other encoding will be converted to UTF-8.
 
 Installing
 ----------

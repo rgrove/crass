@@ -6,7 +6,7 @@ module Crass
 
   # Parses a CSS string or list of tokens.
   #
-  # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parsing
+  # http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#parsing
   class Parser
     BLOCK_END_TOKENS = {
       :'{' => :'}',
@@ -21,7 +21,7 @@ module Crass
     #
     # See {Tokenizer#initialize} for _options_.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-list-of-declarations
+    # 5.3.5. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#parse-a-list-of-declarations
     def self.parse_properties(input, options = {})
       Parser.new(input, options).parse_properties
     end
@@ -32,7 +32,7 @@ module Crass
     #
     # See {Tokenizer#initialize} for _options_.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-list-of-rules
+    # 5.3.2. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#parse-a-list-of-rules
     def self.parse_rules(input, options = {})
       parser = Parser.new(input, options)
       rules  = parser.consume_rules
@@ -50,7 +50,7 @@ module Crass
     #
     # See {Tokenizer#initialize} for _options_.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-stylesheet
+    # 5.3.1. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#parse-a-stylesheet
     def self.parse_stylesheet(input, options = {})
       parser = Parser.new(input, options)
       rules  = parser.consume_rules(:top_level => true)
@@ -133,7 +133,7 @@ module Crass
 
     # Consumes an at-rule and returns it.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-an-at-rule
+    # 5.4.2. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-an-at-rule
     def consume_at_rule(input = @tokens)
       rule = {}
 
@@ -174,7 +174,7 @@ module Crass
 
     # Consumes a component value and returns it.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-component-value
+    # 5.4.6. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-component-value
     def consume_component_value(input = @tokens)
       return nil unless token = input.consume
 
@@ -197,7 +197,7 @@ module Crass
 
     # Consumes a declaration and returns it, or `nil` on parse error.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-declaration
+    # 5.4.5. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-declaration
     def consume_declaration(input = @tokens)
       declaration = {}
       value       = []
@@ -247,7 +247,7 @@ module Crass
     # NOTE: The returned list may include `:comment`, `:semicolon`, and
     # `:whitespace` nodes, which is non-standard.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-list-of-declarations
+    # 5.4.4. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-list-of-declarations
     def consume_declarations(input = @tokens)
       declarations = []
 
@@ -296,7 +296,7 @@ module Crass
 
     # Consumes a function and returns it.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-function
+    # 5.4.8. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-function
     def consume_function(input = @tokens)
       function = {
         :name   => input.current[:value],
@@ -326,7 +326,7 @@ module Crass
     # Consumes a qualified rule and returns it, or `nil` if a parse error
     # occurs.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-qualified-rule
+    # 5.4.3. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-qualified-rule
     def consume_qualified_rule(input = @tokens)
       rule = {:prelude => []}
 
@@ -352,7 +352,7 @@ module Crass
 
     # Consumes a list of rules and returns them.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-list-of-rules
+    # 5.4.1. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-list-of-rules
     def consume_rules(flags = {})
       rules = []
 
@@ -386,7 +386,7 @@ module Crass
     # Consumes and returns a simple block associated with the current input
     # token.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-simple-block0
+    # 5.4.7. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-simple-block
     def consume_simple_block(input = @tokens)
       start_token = input.current[:node]
       end_token   = BLOCK_END_TOKENS[start_token]
@@ -428,8 +428,8 @@ module Crass
     # Creates a `:style_rule` node from the given qualified _rule_, and returns
     # it.
     #
-    # * http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#style-rules
-    # * http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-list-of-declarations0
+    # 8.1. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#style-rules
+    # 5.4.4. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-list-of-declarations
     def create_style_rule(rule)
       create_node(:style_rule,
         :selector => create_selector(rule[:prelude]),
@@ -440,7 +440,7 @@ module Crass
     # (and any non-declaration nodes that were in the input). This is useful for
     # parsing the contents of an HTML element's `style` attribute.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-list-of-declarations
+    # 5.3.5. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#parse-a-list-of-declarations
     def parse_properties(input = @tokens)
       input      = TokenScanner.new(input) unless input.is_a?(TokenScanner)
       properties = []

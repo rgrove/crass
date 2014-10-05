@@ -5,7 +5,7 @@ module Crass
 
   # Tokenizes a CSS string.
   #
-  # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#tokenization
+  # http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#tokenization
   class Tokenizer
     RE_COMMENT_CLOSE   = /\*\//
     RE_DIGIT           = /[0-9]+/
@@ -64,7 +64,7 @@ module Crass
 
     # Consumes a token and returns the token that was consumed.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-token0
+    # 4.3.1. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-token
     def consume
       return nil if @s.eos?
 
@@ -273,7 +273,7 @@ module Crass
 
     # Consumes the remnants of a bad URL and returns the consumed text.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-the-remnants-of-a-bad-url
+    # 4.3.14. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-the-remnants-of-a-bad-url
     def consume_bad_url
       text = ''
 
@@ -303,7 +303,7 @@ module Crass
     # next character in the input has already been verified not to be a newline
     # or EOF.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-an-escaped-code-point0
+    # 4.3.7. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-an-escaped-code-point
     def consume_escaped
       case
       when @s.eos?
@@ -330,7 +330,7 @@ module Crass
 
     # Consumes an ident-like token and returns it.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-an-ident-like-token
+    # 4.3.3. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-an-ident-like-token
     def consume_ident
       value = consume_name
 
@@ -349,7 +349,7 @@ module Crass
 
     # Consumes a name and returns it.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-name
+    # 4.3.11. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-name
     def consume_name
       result = ''
 
@@ -379,7 +379,7 @@ module Crass
     # original representation, its numeric value, and its type (either
     # `:integer` or `:number`).
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-number0
+    # 4.3.12. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-number
     def consume_number
       repr = ''
       type = :integer
@@ -402,7 +402,7 @@ module Crass
 
     # Consumes a numeric token and returns it.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-numeric-token
+    # 4.3.2. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-numeric-token
     def consume_numeric
       number = consume_number
 
@@ -432,7 +432,7 @@ module Crass
     # Consumes a string token that ends at the given character, and returns the
     # token.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-string-token
+    # 4.3.4. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-string-token
     def consume_string(ending)
       value = ''
 
@@ -471,7 +471,7 @@ module Crass
     # Consumes a Unicode range token and returns it. Assumes the initial "u+" or
     # "U+" has already been consumed.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-unicode-range-token
+    # 4.3.6. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-unicode-range-token
     def consume_unicode_range
       value = @s.scan(RE_HEX) || ''
 
@@ -503,7 +503,7 @@ module Crass
     # Consumes a URL token and returns it. Assumes the original "url(" has
     # already been consumed.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-url-token
+    # 4.3.5. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-url-token
     def consume_url
       value = ''
 
@@ -576,7 +576,7 @@ module Crass
 
     # Converts a valid CSS number string into a number and returns the number.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#convert-a-string-to-a-number0
+    # 4.3.13. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#convert-a-string-to-a-number
     def convert_string_to_number(str)
       matches = RE_NUMBER_STR.match(str)
 
@@ -603,7 +603,7 @@ module Crass
 
     # Preprocesses _input_ to prepare it for the tokenizer.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#input-preprocessing
+    # 3.3. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#input-preprocessing
     def preprocess(input)
       input = input.to_s.encode('UTF-8',
         :invalid => :replace,
@@ -618,7 +618,7 @@ module Crass
     # identifier. If _text_ is `nil`, the next three characters in the input
     # stream will be checked, but will not be consumed.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#check-if-three-code-points-would-start-an-identifier
+    # 4.3.9. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#would-start-an-identifier
     def start_identifier?(text = nil)
       text = @s.peek(3) if text.nil?
 
@@ -641,7 +641,7 @@ module Crass
     # If _text_ is `nil`, the next three characters in the input stream will be
     # checked, but will not be consumed.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#check-if-three-code-points-would-start-a-number
+    # 4.3.10. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#starts-with-a-number
     def start_number?(text = nil)
       text = @s.peek(3) if text.nil?
 
@@ -677,7 +677,7 @@ module Crass
     # valid escape sequence. If _text_ is `nil`, the next two characters in the
     # input stream will be checked, but will not be consumed.
     #
-    # http://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#check-if-two-code-points-are-a-valid-escape
+    # 4.3.8. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#starts-with-a-valid-escape
     def valid_escape?(text = nil)
       text = @s.peek(2) if text.nil?
       !!(text[0] == '\\' && text[1] != "\n")
