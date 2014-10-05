@@ -129,13 +129,16 @@ module Crass
         create_token(:comma)
 
       when :-
-        if start_number?(char + @s.peek(2))
+        nextTwoChars   = @s.peek(2)
+        nextThreeChars = char + nextTwoChars
+
+        if start_number?(nextThreeChars)
           @s.reconsume
           consume_numeric
-        elsif start_identifier?(char + @s.peek(2))
+        elsif start_identifier?(nextThreeChars)
           @s.reconsume
           consume_ident
-        elsif @s.peek(2) == '->'
+        elsif nextTwoChars == '->'
           @s.consume
           @s.consume
           create_token(:cdc)

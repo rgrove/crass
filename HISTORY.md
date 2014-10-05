@@ -4,6 +4,8 @@ Crass Change History
 ? (git)
 -------
 
+* Teensy tiny speed and memory usage improvements.
+
 * Fixed: A multibyte char at the beginning of an id token could trigger an
   encoding error because StringScanner#peek is a jerkface.
 
