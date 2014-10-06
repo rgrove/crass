@@ -19,11 +19,18 @@ module Crass
       @tokens[start...@pos] || []
     end
 
-    # Consumes the next token and returns it, advancing the pointer.
+    # Consumes the next token and returns it, advancing the pointer. Returns
+    # `nil` if there is no next token.
     def consume
       @current = @tokens[@pos]
       @pos += 1 if @current
       @current
+    end
+
+    # Returns the next token without consuming it, or `nil` if there is no next
+    # token.
+    def peek
+      @tokens[@pos]
     end
 
     # Reconsumes the current token, moving the pointer back one position.

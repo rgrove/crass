@@ -5,7 +5,7 @@ module Crass
 
   # Tokenizes a CSS string.
   #
-  # http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#tokenization
+  # 4. http://dev.w3.org/csswg/css-syntax/#tokenization
   class Tokenizer
     RE_COMMENT_CLOSE   = /\*\//
     RE_DIGIT           = /[0-9]+/
@@ -30,9 +30,11 @@ module Crass
       )?
     \z/x
 
+    RE_QUOTED_URL_START    = /\A[\n\u0009\u0020]?["']/
     RE_UNICODE_RANGE_START = /\+(?:[0-9A-Fa-f]|\?)/
     RE_UNICODE_RANGE_END   = /-[0-9A-Fa-f]/
     RE_WHITESPACE          = /[\n\u0009\u0020]+/
+    RE_WHITESPACE_ANCHORED = /\A[\n\u0009\u0020]+\z/
 
     # -- Class Methods ---------------------------------------------------------
 
@@ -64,23 +66,34 @@ module Crass
 
     # Consumes a token and returns the token that was consumed.
     #
-    # 4.3.1. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-token
+    # 4.3.1. http://dev.w3.org/csswg/css-syntax/#consume-a-token
     def consume
       return nil if @s.eos?
 
       @s.mark
+
+      # Consume comments.
+      if comment_token = consume_comments
+        if @options[:preserve_comments]
+          return comment_token
+        else
+          return consume
+        end
+      end
+
+      # Consume whitespace.
       return create_token(:whitespace) if @s.scan(RE_WHITESPACE)
 
       char = @s.consume
 
       case char.to_sym
       when :'"'
-        consume_string('"')
+        consume_string
 
       when :'#'
-        if @s.peek =~ RE_NAME || valid_escape?
+        if @s.peek =~ RE_NAME || valid_escape?(@s.peek(2))
           create_token(:hash,
-            :type  => start_identifier? ? :id : :unrestricted,
+            :type  => start_identifier?(@s.peek(3)) ? :id : :unrestricted,
             :value => consume_name)
         else
           create_token(:delim, :value => char)
@@ -95,7 +108,7 @@ module Crass
         end
 
       when :"'"
-        consume_string("'")
+        consume_string
 
       when :'('
         create_token(:'(')
@@ -108,8 +121,8 @@ module Crass
           @s.consume
           create_token(:substring_match)
 
+        # Non-standard: Preserve the IE * hack.
         elsif @options[:preserve_hacks] && @s.peek =~ RE_NAME_START
-          # NON-STANDARD: IE * hack
           @s.reconsume
           consume_ident
 
@@ -118,7 +131,7 @@ module Crass
         end
 
       when :+
-        if start_number?(char + @s.peek(2))
+        if start_number?
           @s.reconsume
           consume_numeric
         else
@@ -135,40 +148,21 @@ module Crass
         if start_number?(nextThreeChars)
           @s.reconsume
           consume_numeric
-        elsif start_identifier?(nextThreeChars)
-          @s.reconsume
-          consume_ident
         elsif nextTwoChars == '->'
           @s.consume
           @s.consume
           create_token(:cdc)
+        elsif start_identifier?(nextThreeChars)
+          @s.reconsume
+          consume_ident
         else
           create_token(:delim, :value => char)
         end
 
       when :'.'
-        if start_number?(char + @s.peek(2))
+        if start_number?
           @s.reconsume
           consume_numeric
-        else
-          create_token(:delim, :value => char)
-        end
-
-      when :/
-        if @s.peek == '*'
-          @s.consume
-
-          if text = @s.scan_until(RE_COMMENT_CLOSE)
-            text.slice!(-2, 2)
-          else
-            text = @s.consume_rest
-          end
-
-          if @options[:preserve_comments]
-            create_token(:comment, :value => text)
-          else
-            consume
-          end
         else
           create_token(:delim, :value => char)
         end
@@ -191,7 +185,7 @@ module Crass
         end
 
       when :'@'
-        if start_identifier?
+        if start_identifier?(@s.peek(3))
           create_token(:at_keyword, :value => consume_name)
         else
           create_token(:delim, :value => char)
@@ -201,10 +195,11 @@ module Crass
         create_token(:'[')
 
       when :'\\'
-        if valid_escape?(char + @s.peek)
+        if valid_escape?
           @s.reconsume
           consume_ident
         else
+          # Parse error.
           create_token(:delim,
             :error => true,
             :value => char)
@@ -276,14 +271,14 @@ module Crass
 
     # Consumes the remnants of a bad URL and returns the consumed text.
     #
-    # 4.3.14. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-the-remnants-of-a-bad-url
+    # 4.3.15. http://dev.w3.org/csswg/css-syntax/#consume-the-remnants-of-a-bad-url
     def consume_bad_url
       text = ''
 
       until @s.eos?
-        if valid_escape?(@s.current + @s.peek)
+        if valid_escape?
           text << consume_escaped
-        elsif valid_escape?
+        elsif valid_escape?(@s.peek(2))
           @s.consume
           text << consume_escaped
         else
@@ -300,19 +295,38 @@ module Crass
       text
     end
 
+    # Consumes comments and returns them, or `nil` if no comments were consumed.
+    #
+    # 4.3.2. http://dev.w3.org/csswg/css-syntax/#consume-comments
+    def consume_comments
+      if @s.peek(2) == '/*'
+        @s.consume
+        @s.consume
+
+        if text = @s.scan_until(RE_COMMENT_CLOSE)
+          text.slice!(-2, 2)
+        else
+          # Parse error.
+          text = @s.consume_rest
+        end
+
+        return create_token(:comment, :value => text)
+      end
+
+      nil
+    end
+
     # Consumes an escaped code point and returns its unescaped value.
     #
     # This method assumes that the `\` has already been consumed, and that the
     # next character in the input has already been verified not to be a newline
     # or EOF.
     #
-    # 4.3.7. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-an-escaped-code-point
+    # 4.3.8. http://dev.w3.org/csswg/css-syntax/#consume-an-escaped-code-point
     def consume_escaped
-      case
-      when @s.eos?
-        "\ufffd"
+      return "\ufffd" if @s.eos?
 
-      when hex_str = @s.scan(RE_HEX)
+      if hex_str = @s.scan(RE_HEX)
         @s.consume if @s.peek =~ RE_WHITESPACE
 
         codepoint = hex_str.hex
@@ -321,19 +335,18 @@ module Crass
             codepoint.between?(0xD800, 0xDFFF) ||
             codepoint > 0x10FFFF
 
-          "\ufffd"
+          return "\ufffd"
         else
-          codepoint.chr(Encoding::UTF_8)
+          return codepoint.chr(Encoding::UTF_8)
         end
-
-      else
-        @s.consume
       end
+
+      @s.consume
     end
 
     # Consumes an ident-like token and returns it.
     #
-    # 4.3.3. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-an-ident-like-token
+    # 4.3.4. http://dev.w3.org/csswg/css-syntax/#consume-an-ident-like-token
     def consume_ident
       value = consume_name
 
@@ -341,7 +354,13 @@ module Crass
         @s.consume
 
         if value.downcase == 'url'
-          consume_url
+          @s.consume while @s.peek(2) =~ RE_WHITESPACE_ANCHORED
+
+          if @s.peek(2) =~ RE_QUOTED_URL_START
+            create_token(:function, :value => value)
+          else
+            consume_url
+          end
         else
           create_token(:function, :value => value)
         end
@@ -352,37 +371,39 @@ module Crass
 
     # Consumes a name and returns it.
     #
-    # 4.3.11. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-name
+    # 4.3.12. http://dev.w3.org/csswg/css-syntax/#consume-a-name
     def consume_name
       result = ''
 
-      while true
+      until @s.eos?
         if match = @s.scan(RE_NAME)
           result << match
           next
         end
 
-        char = @s.peek
+        char = @s.consume
 
-        if char == '\\' && valid_escape?
-          @s.consume
+        if valid_escape?
           result << consume_escaped
 
-        # NON-STANDARD: IE * hack
-        elsif @options[:preserve_hacks] && char == '*'
+        # Non-standard: IE * hack
+        elsif char == '*' && @options[:preserve_hacks]
           result << @s.consume
 
         else
+          @s.reconsume
           return result
         end
       end
+
+      result
     end
 
     # Consumes a number and returns a 3-element array containing the number's
     # original representation, its numeric value, and its type (either
     # `:integer` or `:number`).
     #
-    # 4.3.12. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-number
+    # 4.3.13. http://dev.w3.org/csswg/css-syntax/#consume-a-number
     def consume_number
       repr = ''
       type = :integer
@@ -405,11 +426,11 @@ module Crass
 
     # Consumes a numeric token and returns it.
     #
-    # 4.3.2. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-numeric-token
+    # 4.3.3. http://dev.w3.org/csswg/css-syntax/#consume-a-numeric-token
     def consume_numeric
       number = consume_number
 
-      if start_identifier?
+      if start_identifier?(@s.peek(3))
         create_token(:dimension,
           :repr  => number[0],
           :type  => number[2],
@@ -435,9 +456,10 @@ module Crass
     # Consumes a string token that ends at the given character, and returns the
     # token.
     #
-    # 4.3.4. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-string-token
-    def consume_string(ending)
-      value = ''
+    # 4.3.5. http://dev.w3.org/csswg/css-syntax/#consume-a-string-token
+    def consume_string(ending = nil)
+      ending = @s.current if ending.nil?
+      value  = ''
 
       until @s.eos?
         case char = @s.consume
@@ -445,6 +467,7 @@ module Crass
           break
 
         when "\n"
+          # Parse error.
           @s.reconsume
           return create_token(:bad_string,
             :error => true,
@@ -474,7 +497,7 @@ module Crass
     # Consumes a Unicode range token and returns it. Assumes the initial "u+" or
     # "U+" has already been consumed.
     #
-    # 4.3.6. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-unicode-range-token
+    # 4.3.7. http://dev.w3.org/csswg/css-syntax/#consume-a-unicode-range-token
     def consume_unicode_range
       value = @s.scan(RE_HEX) || ''
 
@@ -506,71 +529,46 @@ module Crass
     # Consumes a URL token and returns it. Assumes the original "url(" has
     # already been consumed.
     #
-    # 4.3.5. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#consume-a-url-token
+    # 4.3.6. http://dev.w3.org/csswg/css-syntax/#consume-a-url-token
     def consume_url
       value = ''
 
       @s.scan(RE_WHITESPACE)
 
-      if @s.eos?
-        return create_token(:url, :value => value)
-      end
-
-      # Quoted URL.
-      next_char = @s.peek
-
-      if next_char == "'" || next_char == '"'
-        string = consume_string(@s.consume)
-
-        if string[:node] == :bad_string
-          return create_token(:bad_url,
-            :value => string[:value] + consume_bad_url)
-        end
-
-        value = string[:value]
-        @s.scan(RE_WHITESPACE)
-
-        if @s.eos? || @s.peek == ')'
-          @s.consume
-          return create_token(:url, :value => value)
-        else
-          return create_token(:bad_url, :value => value + consume_bad_url)
-        end
-      end
-
-      # Unquoted URL.
       until @s.eos?
         case char = @s.consume
-        when ')'
-          break
-
-        when RE_WHITESPACE
-          @s.scan(RE_WHITESPACE)
-
-          if @s.eos? || @s.peek == ')'
-            @s.consume
+          when ')'
             break
-          else
-            return create_token(:bad_url, :value => value + consume_bad_url)
-          end
 
-        when '"', "'", '(', RE_NON_PRINTABLE
-          return create_token(:bad_url,
-            :error => true,
-            :value => value + consume_bad_url)
+          when RE_WHITESPACE
+            @s.scan(RE_WHITESPACE)
 
-        when '\\'
-          if valid_escape?(char + @s.peek)
-            value << consume_escaped
-          else
+            if @s.eos? || @s.peek == ')'
+              @s.consume
+              break
+            else
+              return create_token(:bad_url, :value => value + consume_bad_url)
+            end
+
+          when '"', "'", '(', RE_NON_PRINTABLE
+            # Parse error.
             return create_token(:bad_url,
               :error => true,
-              :value => value + consume_bad_url
-            )
-          end
+              :value => value + consume_bad_url)
 
-        else
-          value << char
+          when '\\'
+            if valid_escape?
+              value << consume_escaped
+            else
+              # Parse error.
+              return create_token(:bad_url,
+                :error => true,
+                :value => value + consume_bad_url
+              )
+            end
+
+          else
+            value << char
         end
       end
 
@@ -579,7 +577,7 @@ module Crass
 
     # Converts a valid CSS number string into a number and returns the number.
     #
-    # 4.3.13. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#convert-a-string-to-a-number
+    # 4.3.14. http://dev.w3.org/csswg/css-syntax/#convert-a-string-to-a-number
     def convert_string_to_number(str)
       matches = RE_NUMBER_STR.match(str)
 
@@ -606,7 +604,7 @@ module Crass
 
     # Preprocesses _input_ to prepare it for the tokenizer.
     #
-    # 3.3. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#input-preprocessing
+    # 3.3. http://dev.w3.org/csswg/css-syntax/#input-preprocessing
     def preprocess(input)
       input = input.to_s.encode('UTF-8',
         :invalid => :replace,
@@ -618,16 +616,17 @@ module Crass
     end
 
     # Returns `true` if the given three-character _text_ would start an
-    # identifier. If _text_ is `nil`, the next three characters in the input
-    # stream will be checked, but will not be consumed.
+    # identifier. If _text_ is `nil`, the current and next two characters in the
+    # input stream will be checked, but will not be consumed.
     #
-    # 4.3.9. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#would-start-an-identifier
+    # 4.3.10. http://dev.w3.org/csswg/css-syntax/#would-start-an-identifier
     def start_identifier?(text = nil)
-      text = @s.peek(3) if text.nil?
+      text = @s.current + @s.peek(2) if text.nil?
 
       case text[0]
       when '-'
-        !!(text[1] =~ RE_NAME_START || valid_escape?(text[1, 2]))
+        nextChar = text[1]
+        !!(nextChar == '-' || nextChar =~ RE_NAME_START || valid_escape?(text[1, 2]))
 
       when RE_NAME_START
         true
@@ -641,12 +640,12 @@ module Crass
     end
 
     # Returns `true` if the given three-character _text_ would start a number.
-    # If _text_ is `nil`, the next three characters in the input stream will be
-    # checked, but will not be consumed.
+    # If _text_ is `nil`, the current and next two characters in the input
+    # stream will be checked, but will not be consumed.
     #
-    # 4.3.10. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#starts-with-a-number
+    # 4.3.11. http://dev.w3.org/csswg/css-syntax/#starts-with-a-number
     def start_number?(text = nil)
-      text = @s.peek(3) if text.nil?
+      text = @s.current + @s.peek(2) if text.nil?
 
       case text[0]
       when '+', '-'
@@ -677,12 +676,12 @@ module Crass
     end
 
     # Returns `true` if the given two-character _text_ is the beginning of a
-    # valid escape sequence. If _text_ is `nil`, the next two characters in the
-    # input stream will be checked, but will not be consumed.
+    # valid escape sequence. If _text_ is `nil`, the current and next character
+    # in the input stream will be checked, but will not be consumed.
     #
-    # 4.3.8. http://www.w3.org/TR/2014/CR-css-syntax-3-20140220/#starts-with-a-valid-escape
+    # 4.3.9. http://dev.w3.org/csswg/css-syntax/#starts-with-a-valid-escape
     def valid_escape?(text = nil)
-      text = @s.peek(2) if text.nil?
+      text = @s.current + @s.peek if text.nil?
       !!(text[0] == '\\' && text[1] != "\n")
     end
   end
