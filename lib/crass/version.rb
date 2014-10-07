@@ -1,5 +1,5 @@
 # encoding: utf-8
 
 module Crass
-  VERSION = '0.2.1'
+  VERSION = '1.0.0-git'
 end

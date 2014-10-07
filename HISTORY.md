@@ -1,8 +1,8 @@
 Crass Change History
 ====================
 
-? (git)
--------
+1.0.0 (git)
+-----------
 
 * Many parsing and tokenization tweaks to bring us into full compliance with the
   [5 September 2014 editor's draft][css-syntax-draft] of the CSS syntax spec.
