@@ -44,3 +44,127 @@ def tokenize(input, offset = 0, options = {})
   reposition_tokens(tokens, offset) unless offset == 0
   tokens
 end
+
+# Translates Crass tokens into a form that can be compared to the expected
+# values of Simon Sapin's CSS parsing tests.
+#
+# https://github.com/SimonSapin/css-parsing-tests/#result-representation
+def translate_tokens(tokens)
+  return [] if tokens.nil?
+
+  translated = []
+  tokens     = [tokens] unless tokens.is_a?(Array)
+
+  tokens.each do |token|
+    value = token[:value]
+
+    result = case token[:node]
+
+    # Rules and declarations.
+    when :at_rule
+      ['at-rule', token[:name], translate_tokens(token[:prelude]), token[:block] ? translate_tokens(token[:block]) : nil]
+
+    when :qualified_rule
+      ['qualified rule', translate_tokens(token[:prelude]), token[:block] ? translate_tokens(token[:block]) : nil]
+
+    when :declaration
+      ['declaration', token[:name], translate_tokens(value), token[:important]]
+
+    # Component values.
+    when :at_keyword
+      ['at-keyword', value]
+
+    when :bad_string
+      ['error', 'bad-string']
+
+    when :bad_url
+      ['error', 'bad-url']
+
+    when :cdc
+      '-->'
+
+    when :cdo
+      '<!--'
+
+    when :colon
+      ':'
+
+    when :column
+      '||'
+
+    when :comma
+      ','
+
+    when :dash_match
+      '|='
+
+    when :delim
+      value
+
+    when :dimension
+      ['dimension', token[:repr], value, token[:type].to_s, token[:unit]]
+
+    when :error
+      ['error', value]
+
+    when :function
+      if token[:name]
+        ['function', token[:name]].concat(translate_tokens(value))
+      else
+        ['function', value]
+      end
+
+    when :hash
+      ['hash', value, token[:type].to_s]
+
+    when :ident
+      ['ident', value]
+
+    when :include_match
+      '~='
+
+    when :number
+      ['number', token[:repr], value, token[:type].to_s]
+
+    when :percentage
+      ['percentage', token[:repr], value, token[:type].to_s]
+
+    when :prefix_match
+      '^='
+
+    when :semicolon
+      ';'
+
+    when :simple_block
+      [token[:start] + token[:end]].concat(translate_tokens(value))
+
+    when :string
+      ['string', value]
+
+    when :substring_match
+      '*='
+
+    when :suffix_match
+      '$='
+
+    when :unicode_range
+      ['unicode-range', token[:start], token[:end]]
+
+    when :url
+      ['url', value]
+
+    when :whitespace
+      ' '
+
+    when :'}', :']', :')'
+      ['error', token[:node].to_s]
+
+    else
+      nil
+    end
+
+    translated << result unless result.nil?
+  end
+
+  translated
+end
