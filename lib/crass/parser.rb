@@ -79,19 +79,8 @@ module Crass
         next if node.nil?
 
         case node[:node]
-        when :at_rule
-          string << node[:tokens].first[:raw]
-          string << self.stringify(node[:prelude], options)
-
-          if node[:block]
-            string << '{' << self.stringify(node[:block], options) << '}'
-          end
-
         when :comment
           string << node[:raw] unless options[:exclude_comments]
-
-        when :property
-          string << self.stringify(node[:tokens], options)
 
         when :simple_block
           string << node[:start]
