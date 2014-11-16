@@ -7,8 +7,8 @@ Crass is a Ruby CSS parser that's fully compliant with the
 * [Home](https://github.com/rgrove/crass/)
 * [API Docs](http://rubydoc.info/github/rgrove/crass/master)
 
-[![Build Status](https://travis-ci.org/rgrove/crass.png?branch=master)](https://travis-ci.org/rgrove/crass?branch=master)
-[![Gem Version](https://badge.fury.io/rb/crass.png)](http://badge.fury.io/rb/crass)
+[![Build Status](https://travis-ci.org/rgrove/crass.svg?branch=master)](https://travis-ci.org/rgrove/crass)
+[![Gem Version](https://badge.fury.io/rb/crass.svg)](http://badge.fury.io/rb/crass)
 
 Features
 --------
