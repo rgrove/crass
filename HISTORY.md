@@ -1,11 +1,11 @@
 Crass Change History
 ====================
 
-1.0.0 (git)
------------
+1.0.0 (2014-11-16)
+------------------
 
 * Many parsing and tokenization tweaks to bring us into full compliance with the
-  [5 September 2014 editor's draft][css-syntax-draft] of the CSS syntax spec.
+  [14 November 2014 editor's draft][css-syntax-draft] of the CSS syntax spec.
   The most significant outwardly visible change is that quoted URLs like
   `url("foo")` are now returned as `:function` tokens and not `:url` tokens due
   to a change in the tokenization spec.
@@ -20,6 +20,7 @@ Crass Change History
   encoding error because `StringScanner#peek` is a jerkface.
 
 [css-syntax-draft]:http://dev.w3.org/csswg/css-syntax-3/
+
 
 0.2.1 (2014-07-22)
 ------------------

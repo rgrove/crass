@@ -15,7 +15,7 @@ Features
 
 * Pure Ruby, with no runtime dependencies other than Ruby 1.9.x or higher.
 
-* Tokenizes and parses CSS according to the rules defined in the 5 September
+* Tokenizes and parses CSS according to the rules defined in the 14 November
   2014 editor's draft of the [CSS Syntax Level 3][css] specification.
 
 * Extremely tolerant of broken or invalid CSS. If a browser can handle it, Crass
@@ -161,8 +161,8 @@ As of version 1.0.0, Crass adheres strictly to [SemVer 2.0][semver].
 Contributing
 ------------
 
-The best way to contribute right now is to use Crass and [create issues][issue]
-when you run into problems.
+The best way to contribute is to use Crass and [create issues][issue] when you
+run into problems.
 
 Pull requests that fix bugs are more than welcome as long as they include tests.
 Please adhere to the style and format of the surrounding code, or I might ask
