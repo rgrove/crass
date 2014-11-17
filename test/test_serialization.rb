@@ -26,4 +26,20 @@ describe 'Serialization' do
 
     assert_equal(css, CP.stringify(tree))
   end
+
+  it "should reflect modifications made to the block of an `:at_rule`" do
+    tree = Crass.parse(%[
+      @media (screen) {
+        .froggy { color: green; }
+        .piggy { color: pink; }
+      }
+    ].strip)
+
+    tree[0][:block] = Crass::Parser.parse_rules(".piggy { color: pink; }")
+
+    assert_equal(
+      "@media (screen) {.piggy { color: pink; }}",
+      Crass::Parser.stringify(tree)
+    )
+  end
 end

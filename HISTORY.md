@@ -1,6 +1,14 @@
 Crass Change History
 ====================
 
+1.0.1 (git)
+-----------
+
+* Fixed: Modifications made to the block of an `:at_rule` node in a parse tree
+  weren't reflected when that node was stringified. This was a regression
+  introduced in 1.0.0.
+
+
 1.0.0 (2014-11-16)
 ------------------
 
