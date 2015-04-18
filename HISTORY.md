@@ -1,6 +1,14 @@
 Crass Change History
 ====================
 
+1.0.2 (git)
+------------------
+
+* Fixed: An at-rule immediately followed by a `{}` simple block would have the
+  block (and subsequent tokens until a semicolon) incorrectly appended to its
+  prelude. This was super dumb and made me very sad.
+
+
 1.0.1 (2014-11-16)
 ------------------
 

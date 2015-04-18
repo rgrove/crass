@@ -67,6 +67,113 @@ describe 'Crass::Parser' do
       ], tree)
     end
 
+    it 'should parse at-rules with a {} simple block immediately following the prelude' do
+      tree = parse(%[
+        @page :right {
+          @top-center { content: "Preliminary edition" }
+          @bottom-center { content: counter(page) }
+        }
+      ].strip)
+
+      tree = parse(tree.first[:block])
+
+      assert_equal([
+        {:node=>:whitespace, :pos=>14, :raw=>"\n          "},
+        {:node=>:at_rule,
+         :name=>"top-center",
+         :prelude=>[{:node=>:whitespace, :pos=>36, :raw=>" "}],
+         :block=>
+          [{:node=>:whitespace, :pos=>38, :raw=>" "},
+           {:node=>:ident, :pos=>39, :raw=>"content", :value=>"content"},
+           {:node=>:colon, :pos=>46, :raw=>":"},
+           {:node=>:whitespace, :pos=>47, :raw=>" "},
+           {:node=>:string,
+            :pos=>48,
+            :raw=>"\"Preliminary edition\"",
+            :value=>"Preliminary edition"},
+           {:node=>:whitespace, :pos=>69, :raw=>" "}],
+         :tokens=>
+          [{:node=>:at_keyword, :pos=>25, :raw=>"@top-center", :value=>"top-center"},
+           {:node=>:whitespace, :pos=>36, :raw=>" "},
+           {:node=>:simple_block,
+            :start=>"{",
+            :end=>"}",
+            :value=>
+             [{:node=>:whitespace, :pos=>38, :raw=>" "},
+              {:node=>:ident, :pos=>39, :raw=>"content", :value=>"content"},
+              {:node=>:colon, :pos=>46, :raw=>":"},
+              {:node=>:whitespace, :pos=>47, :raw=>" "},
+              {:node=>:string,
+               :pos=>48,
+               :raw=>"\"Preliminary edition\"",
+               :value=>"Preliminary edition"},
+              {:node=>:whitespace, :pos=>69, :raw=>" "}],
+            :tokens=>
+             [{:node=>:"{", :pos=>37, :raw=>"{"},
+              {:node=>:whitespace, :pos=>38, :raw=>" "},
+              {:node=>:ident, :pos=>39, :raw=>"content", :value=>"content"},
+              {:node=>:colon, :pos=>46, :raw=>":"},
+              {:node=>:whitespace, :pos=>47, :raw=>" "},
+              {:node=>:string,
+               :pos=>48,
+               :raw=>"\"Preliminary edition\"",
+               :value=>"Preliminary edition"},
+              {:node=>:whitespace, :pos=>69, :raw=>" "},
+              {:node=>:"}", :pos=>70, :raw=>"}"}]}]},
+        {:node=>:whitespace, :pos=>71, :raw=>"\n          "},
+        {:node=>:at_rule,
+         :name=>"bottom-center",
+         :prelude=>[{:node=>:whitespace, :pos=>96, :raw=>" "}],
+         :block=>
+          [{:node=>:whitespace, :pos=>98, :raw=>" "},
+           {:node=>:ident, :pos=>99, :raw=>"content", :value=>"content"},
+           {:node=>:colon, :pos=>106, :raw=>":"},
+           {:node=>:whitespace, :pos=>107, :raw=>" "},
+           {:node=>:function,
+            :name=>"counter",
+            :value=>[{:node=>:ident, :pos=>116, :raw=>"page", :value=>"page"}],
+            :tokens=>
+             [{:node=>:function, :pos=>108, :raw=>"counter(", :value=>"counter"},
+              {:node=>:ident, :pos=>116, :raw=>"page", :value=>"page"},
+              {:node=>:")", :pos=>120, :raw=>")"}]},
+           {:node=>:whitespace, :pos=>121, :raw=>" "}],
+         :tokens=>
+          [{:node=>:at_keyword,
+            :pos=>82,
+            :raw=>"@bottom-center",
+            :value=>"bottom-center"},
+           {:node=>:whitespace, :pos=>96, :raw=>" "},
+           {:node=>:simple_block,
+            :start=>"{",
+            :end=>"}",
+            :value=>
+             [{:node=>:whitespace, :pos=>98, :raw=>" "},
+              {:node=>:ident, :pos=>99, :raw=>"content", :value=>"content"},
+              {:node=>:colon, :pos=>106, :raw=>":"},
+              {:node=>:whitespace, :pos=>107, :raw=>" "},
+              {:node=>:function,
+               :name=>"counter",
+               :value=>[{:node=>:ident, :pos=>116, :raw=>"page", :value=>"page"}],
+               :tokens=>
+                [{:node=>:function, :pos=>108, :raw=>"counter(", :value=>"counter"},
+                 {:node=>:ident, :pos=>116, :raw=>"page", :value=>"page"},
+                 {:node=>:")", :pos=>120, :raw=>")"}]},
+              {:node=>:whitespace, :pos=>121, :raw=>" "}],
+            :tokens=>
+             [{:node=>:"{", :pos=>97, :raw=>"{"},
+              {:node=>:whitespace, :pos=>98, :raw=>" "},
+              {:node=>:ident, :pos=>99, :raw=>"content", :value=>"content"},
+              {:node=>:colon, :pos=>106, :raw=>":"},
+              {:node=>:whitespace, :pos=>107, :raw=>" "},
+              {:node=>:function, :pos=>108, :raw=>"counter(", :value=>"counter"},
+              {:node=>:ident, :pos=>116, :raw=>"page", :value=>"page"},
+              {:node=>:")", :pos=>120, :raw=>")"},
+              {:node=>:whitespace, :pos=>121, :raw=>" "},
+              {:node=>:"}", :pos=>122, :raw=>"}"}]}]},
+        {:node=>:whitespace, :pos=>123, :raw=>"\n        "}
+      ], tree)
+    end
+
     it 'should parse values containing functions' do
       tree = parse("content: attr(data-foo) \" \";")
 

@@ -42,4 +42,30 @@ describe 'Serialization' do
       Crass::Parser.stringify(tree)
     )
   end
+
+  it "should serialize a @page rule" do
+    css = %[
+      @page { margin: 2cm }
+
+      @page :right {
+        @top-center { content: "Preliminary edition" }
+        @bottom-center { content: counter(page) }
+      }
+
+      @page {
+        size: 8.5in 11in;
+        margin: 10%;
+
+        @top-left {
+          content: "Hamlet";
+        }
+        @top-right {
+          content: "Page " counter(page);
+        }
+      }
+    ].strip
+
+    tree = Crass.parse(css)
+    assert_equal(css, Crass::Parser.stringify(tree))
+  end
 end

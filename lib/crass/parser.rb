@@ -133,7 +133,7 @@ module Crass
 
     # Consumes an at-rule and returns it.
     #
-    # 5.4.2. http://dev.w3.org/csswg/css-syntax-3/#consume-an-at-rule
+    # 5.4.2. http://dev.w3.org/csswg/css-syntax-3/#consume-at-rule
     def consume_at_rule(input = @tokens)
       rule = {}
 
@@ -142,15 +142,15 @@ module Crass
         rule[:prelude] = []
 
         while token = input.consume
-          case token[:node]
-          # Non-standard.
-          when :comment
+          node = token[:node]
+
+          if node == :comment # Non-standard.
             next
 
-          when :semicolon
+          elsif node == :semicolon
             break
 
-          when :'{'
+          elsif node === :'{'
             # Note: The spec says the block should _be_ the consumed simple
             # block, but Simon Sapin's CSS parsing tests and tinycss2 expect
             # only the _value_ of the consumed simple block here. I assume I'm
@@ -159,7 +159,7 @@ module Crass
             rule[:block] = consume_simple_block(input)[:value]
             break
 
-          when :simple_block && token[:start] == '{'
+          elsif node == :simple_block && token[:start] == '{'
             # Note: The spec says the block should _be_ the simple block, but
             # Simon Sapin's CSS parsing tests and tinycss2 expect only the
             # _value_ of the simple block here. I assume I'm interpreting the
