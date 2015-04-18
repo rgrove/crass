@@ -1,7 +1,7 @@
 Crass Change History
 ====================
 
-1.0.2 (git)
+1.0.2 (2015-04-17)
 ------------------
 
 * Fixed: An at-rule immediately followed by a `{}` simple block would have the
