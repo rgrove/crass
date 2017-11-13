@@ -1,6 +1,12 @@
 Crass Change History
 ====================
 
+1.0.3 (2017-11-13)
+------------------
+
+* Added support for frozen string literals. (#3 - @flavorjones)
+
+
 1.0.2 (2015-04-17)
 ------------------
 
