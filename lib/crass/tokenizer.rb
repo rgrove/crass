@@ -273,7 +273,7 @@ module Crass
     #
     # 4.3.15. http://dev.w3.org/csswg/css-syntax/#consume-the-remnants-of-a-bad-url
     def consume_bad_url
-      text = ''
+      text = String.new
 
       until @s.eos?
         if valid_escape?
@@ -373,7 +373,7 @@ module Crass
     #
     # 4.3.12. http://dev.w3.org/csswg/css-syntax/#consume-a-name
     def consume_name
-      result = ''
+      result = String.new
 
       until @s.eos?
         if match = @s.scan(RE_NAME)
@@ -405,7 +405,7 @@ module Crass
     #
     # 4.3.13. http://dev.w3.org/csswg/css-syntax/#consume-a-number
     def consume_number
-      repr = ''
+      repr = String.new
       type = :integer
 
       repr << @s.consume if @s.peek =~ RE_NUMBER_SIGN
@@ -459,7 +459,7 @@ module Crass
     # 4.3.5. http://dev.w3.org/csswg/css-syntax/#consume-a-string-token
     def consume_string(ending = nil)
       ending = @s.current if ending.nil?
-      value  = ''
+      value  = String.new
 
       until @s.eos?
         case char = @s.consume
@@ -499,7 +499,7 @@ module Crass
     #
     # 4.3.7. http://dev.w3.org/csswg/css-syntax/#consume-a-unicode-range-token
     def consume_unicode_range
-      value = @s.scan(RE_HEX) || ''
+      value = @s.scan(RE_HEX) || String.new
 
       while value.length < 6
         break unless @s.peek == '?'
@@ -531,7 +531,7 @@ module Crass
     #
     # 4.3.6. http://dev.w3.org/csswg/css-syntax/#consume-a-url-token
     def consume_url
-      value = ''
+      value = String.new
 
       @s.scan(RE_WHITESPACE)
 

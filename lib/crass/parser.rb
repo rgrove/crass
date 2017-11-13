@@ -73,7 +73,7 @@ module Crass
     #
     def self.stringify(nodes, options = {})
       nodes  = [nodes] unless nodes.is_a?(Array)
-      string = ''
+      string = String.new
 
       nodes.each do |node|
         next if node.nil?
@@ -614,7 +614,7 @@ module Crass
     # Returns the unescaped value of a selector name or property declaration.
     def parse_value(nodes)
       nodes  = [nodes] unless nodes.is_a?(Array)
-      string = ''
+      string = String.new
 
       nodes.each do |node|
         case node[:node]
