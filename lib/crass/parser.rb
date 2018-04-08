@@ -402,25 +402,25 @@ module Crass
         case token[:node]
           # Non-standard. Spec says to discard comments and whitespace, but we
           # keep them so we can serialize faithfully.
-          when :comment, :whitespace
-            rules << token
+        when :comment, :whitespace
+          rules << token
 
-          when :cdc, :cdo
-            unless flags[:top_level]
-              @tokens.reconsume
-              rule = consume_qualified_rule
-              rules << rule if rule
-            end
-
-          when :at_keyword
-            @tokens.reconsume
-            rule = consume_at_rule
-            rules << rule if rule
-
-          else
+        when :cdc, :cdo
+          unless flags[:top_level]
             @tokens.reconsume
             rule = consume_qualified_rule
             rules << rule if rule
+          end
+
+        when :at_keyword
+          @tokens.reconsume
+          rule = consume_at_rule
+          rules << rule if rule
+
+        else
+          @tokens.reconsume
+          rule = consume_qualified_rule
+          rules << rule if rule
         end
       end
 

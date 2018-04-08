@@ -537,38 +537,38 @@ module Crass
 
       until @s.eos?
         case char = @s.consume
-          when ')'
+        when ')'
+          break
+
+        when RE_WHITESPACE
+          @s.scan(RE_WHITESPACE)
+
+          if @s.eos? || @s.peek == ')'
+            @s.consume
             break
+          else
+            return create_token(:bad_url, :value => value + consume_bad_url)
+          end
 
-          when RE_WHITESPACE
-            @s.scan(RE_WHITESPACE)
+        when '"', "'", '(', RE_NON_PRINTABLE
+          # Parse error.
+          return create_token(:bad_url,
+            :error => true,
+            :value => value + consume_bad_url)
 
-            if @s.eos? || @s.peek == ')'
-              @s.consume
-              break
-            else
-              return create_token(:bad_url, :value => value + consume_bad_url)
-            end
-
-          when '"', "'", '(', RE_NON_PRINTABLE
+        when '\\'
+          if valid_escape?
+            value << consume_escaped
+          else
             # Parse error.
             return create_token(:bad_url,
               :error => true,
-              :value => value + consume_bad_url)
+              :value => value + consume_bad_url
+            )
+          end
 
-          when '\\'
-            if valid_escape?
-              value << consume_escaped
-            else
-              # Parse error.
-              return create_token(:bad_url,
-                :error => true,
-                :value => value + consume_bad_url
-              )
-            end
-
-          else
-            value << char
+        else
+          value << char
         end
       end
 
