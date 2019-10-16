@@ -11,6 +11,13 @@ Gem::Specification.new do |s|
   s.homepage    = 'https://github.com/rgrove/crass/'
   s.license     = 'MIT'
 
+  s.metadata = {
+    'bug_tracker_uri'   => 'https://github.com/rgrove/crass/issues',
+    'changelog_uri'     => "https://github.com/rgrove/crass/blob/v#{s.version}/HISTORY.md",
+    'documentation_uri' => "https://www.rubydoc.info/gems/crass/#{s.version}",
+    'source_code_uri'   => "https://github.com/rgrove/crass/tree/v#{s.version}",
+  }
+
   s.platform = Gem::Platform::RUBY
   s.required_ruby_version = Gem::Requirement.new('>= 1.9.2')
 
