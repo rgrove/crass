@@ -16,8 +16,7 @@ Gem::Specification.new do |s|
 
   s.require_paths = ['lib']
 
-  s.files      = `git ls-files`.split($/)
-  s.test_files = s.files.grep(%r{^(test|spec|features)/})
+  s.files = `git ls-files -z`.split("\x0").grep_v(%r{^test/})
 
   # Development dependencies.
   s.add_development_dependency 'minitest', '~> 5.0.8'
