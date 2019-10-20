@@ -1,12 +1,16 @@
 Crass Change History
 ====================
 
+Pending Release
+---------------
+
+* Added project metadata to the gemspec. (#9 - @orien)
+
+
 1.0.5 (2019-10-15)
 ------------------
 
-* Removed test files from the gem. [@t-richards - #8][8]
-
-[8]:https://github.com/rgrove/crass/pull/8
+* Removed test files from the gem. (#8 - @t-richards)
 
 
 1.0.4 (2018-04-08)
