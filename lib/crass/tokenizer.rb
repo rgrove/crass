@@ -429,27 +429,36 @@ module Crass
     # 4.3.3. http://dev.w3.org/csswg/css-syntax/#consume-a-numeric-token
     def consume_numeric
       number = consume_number
+      repr = number[0]
+      value = number[1]
+      type = number[2]
+
+      if type == :integer
+        value = value.to_i
+      else
+        value = value.to_f
+      end
 
       if start_identifier?(@s.peek(3))
         create_token(:dimension,
-          :repr  => number[0],
-          :type  => number[2],
-          :unit  => consume_name,
-          :value => number[1])
+          :repr => repr,
+          :type => type,
+          :unit => consume_name,
+          :value => value)
 
       elsif @s.peek == '%'
         @s.consume
 
         create_token(:percentage,
-          :repr  => number[0],
-          :type  => number[2],
-          :value => number[1])
+          :repr => repr,
+          :type => type,
+          :value => value)
 
       else
         create_token(:number,
-          :repr  => number[0],
-          :type  => number[2],
-          :value => number[1])
+          :repr => repr,
+          :type => type,
+          :value => value)
       end
     end
 
@@ -588,9 +597,19 @@ module Crass
       t = matches[:exponent_sign] == '-' ? -1 : 1
       e = matches[:exponent].to_i
 
-      # I know this looks nutty, but it's exactly what's defined in the spec,
-      # and it works.
-      s * (i + f * 10**-d) * 10**(t * e)
+      # I know this formula looks nutty, but it's exactly what's defined in the
+      # spec, and it works.
+      value = s * (i + f * 10**-d) * 10**(t * e)
+
+      # Maximum and minimum values aren't defined in the spec, but are enforced
+      # here for sanity.
+      if value > Float::MAX
+        value = Float::MAX
+      elsif value < -Float::MAX
+        value = -Float::MAX
+      end
+
+      value
     end
 
     # Creates and returns a new token with the given _properties_.

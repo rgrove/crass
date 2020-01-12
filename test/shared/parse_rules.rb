@@ -313,6 +313,155 @@ shared_tests_for 'parsing a list of rules' do
     end
   end
 
+  # https://github.com/rgrove/crass/issues/10
+  it 'should limit number values to a maximum of `Float::MAX`' do
+    tree = parse("div { height: 5e99999 }")
+
+    assert_equal([
+      {:node=>:style_rule,
+        :selector=>
+         {:node=>:selector,
+          :value=>"div",
+          :tokens=>
+           [{:node=>:ident, :pos=>0, :raw=>"div", :value=>"div"},
+            {:node=>:whitespace, :pos=>3, :raw=>" "}]},
+        :children=>
+         [{:node=>:whitespace, :pos=>5, :raw=>" "},
+          {:node=>:property,
+           :name=>"height",
+           :value=>"5e99999",
+           :children=>
+            [{:node=>:whitespace, :pos=>13, :raw=>" "},
+             {:node=>:number,
+              :pos=>14,
+              :raw=>"5e99999",
+              :repr=>"5e99999",
+              :type=>:number,
+              :value=>1.7976931348623157e+308},
+             {:node=>:whitespace, :pos=>21, :raw=>" "}],
+           :important=>false,
+           :tokens=>
+            [{:node=>:ident, :pos=>6, :raw=>"height", :value=>"height"},
+             {:node=>:colon, :pos=>12, :raw=>":"},
+             {:node=>:whitespace, :pos=>13, :raw=>" "},
+             {:node=>:number,
+              :pos=>14,
+              :raw=>"5e99999",
+              :repr=>"5e99999",
+              :type=>:number,
+              :value=>1.7976931348623157e+308},
+             {:node=>:whitespace, :pos=>21, :raw=>" "}]}]}
+    ], tree)
+  end
+
+  # https://github.com/rgrove/crass/issues/10
+  it 'should limit number values to a minimum of `-Float::MAX`' do
+    tree = parse("div { margin: -5e99999 }")
+
+    assert_equal([
+      {:node=>:style_rule,
+        :selector=>
+         {:node=>:selector,
+          :value=>"div",
+          :tokens=>
+           [{:node=>:ident, :pos=>0, :raw=>"div", :value=>"div"},
+            {:node=>:whitespace, :pos=>3, :raw=>" "}]},
+        :children=>
+         [{:node=>:whitespace, :pos=>5, :raw=>" "},
+          {:node=>:property,
+           :name=>"margin",
+           :value=>"-5e99999",
+           :children=>
+            [{:node=>:whitespace, :pos=>13, :raw=>" "},
+             {:node=>:number,
+              :pos=>14,
+              :raw=>"-5e99999",
+              :repr=>"-5e99999",
+              :type=>:number,
+              :value=>-1.7976931348623157e+308},
+             {:node=>:whitespace, :pos=>22, :raw=>" "}],
+           :important=>false,
+           :tokens=>
+            [{:node=>:ident, :pos=>6, :raw=>"margin", :value=>"margin"},
+             {:node=>:colon, :pos=>12, :raw=>":"},
+             {:node=>:whitespace, :pos=>13, :raw=>" "},
+             {:node=>:number,
+              :pos=>14,
+              :raw=>"-5e99999",
+              :repr=>"-5e99999",
+              :type=>:number,
+              :value=>-1.7976931348623157e+308},
+             {:node=>:whitespace, :pos=>22, :raw=>" "}]}]}
+    ], tree)
+  end
+
+  # https://github.com/rgrove/crass/issues/10
+  it 'should parse a class selector that looks like an exponent' do
+    tree = parse("p.5e1367490fa5f06927cafe55msonormal {}")
+
+    assert_equal([
+      {:node=>:style_rule,
+        :selector=>
+         {:node=>:selector,
+          :value=>"p.5e1367490fa5f06927cafe55msonormal",
+          :tokens=>
+           [{:node=>:ident, :pos=>0, :raw=>"p", :value=>"p"},
+            {:node=>:dimension,
+             :pos=>1,
+             :raw=>".5e1367490fa5f06927cafe55msonormal",
+             :repr=>".5e1367490",
+             :type=>:number,
+             :unit=>"fa5f06927cafe55msonormal",
+             :value=>1.7976931348623157e+308},
+            {:node=>:whitespace, :pos=>35, :raw=>" "}]},
+        :children=>[]}
+    ], tree)
+  end
+
+  # https://github.com/rgrove/crass/issues/10
+  it 'should parse a property value that looks like an exponent' do
+    tree = parse("p { mso-style-name:5e1367490fa5f06927cafe55msonormal }")
+
+    assert_equal([
+      {:node=>:style_rule,
+        :selector=>
+         {:node=>:selector,
+          :value=>"p",
+          :tokens=>
+           [{:node=>:ident, :pos=>0, :raw=>"p", :value=>"p"},
+            {:node=>:whitespace, :pos=>1, :raw=>" "}]},
+        :children=>
+         [{:node=>:whitespace, :pos=>3, :raw=>" "},
+          {:node=>:property,
+           :name=>"mso-style-name",
+           :value=>"5e1367490fa5f06927cafe55msonormal",
+           :children=>
+            [{:node=>:dimension,
+              :pos=>19,
+              :raw=>"5e1367490fa5f06927cafe55msonormal",
+              :repr=>"5e1367490",
+              :type=>:number,
+              :unit=>"fa5f06927cafe55msonormal",
+              :value=>1.7976931348623157e+308},
+             {:node=>:whitespace, :pos=>52, :raw=>" "}],
+           :important=>false,
+           :tokens=>
+            [{:node=>:ident,
+              :pos=>4,
+              :raw=>"mso-style-name",
+              :value=>"mso-style-name"},
+             {:node=>:colon, :pos=>18, :raw=>":"},
+             {:node=>:dimension,
+              :pos=>19,
+              :raw=>"5e1367490fa5f06927cafe55msonormal",
+              :repr=>"5e1367490",
+              :type=>:number,
+              :unit=>"fa5f06927cafe55msonormal",
+              :value=>1.7976931348623157e+308},
+             {:node=>:whitespace, :pos=>52, :raw=>" "}]}]}
+    ], tree)
+  end
+
   it 'should parse property values containing functions' do
     tree = parse("p:before { content: a\\ttr(data-foo) \" \"; }")
 
