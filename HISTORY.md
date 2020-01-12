@@ -1,8 +1,11 @@
 Crass Change History
 ====================
 
-Pending Release
----------------
+1.0.6 (2020-01-12)
+------------------
+
+* Number values are now limited to a maximum of `Float::MAX` and a minimum of
+  negative `Float::MAX`. (#11)
 
 * Added project metadata to the gemspec. (#9 - @orien)
 
