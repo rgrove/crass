@@ -15,6 +15,7 @@ Gem::Specification.new do |s|
     'bug_tracker_uri' => 'https://github.com/rgrove/crass/issues',
     'changelog_uri' => "https://github.com/rgrove/crass/blob/v#{s.version}/HISTORY.md",
     'documentation_uri' => "https://www.rubydoc.info/gems/crass/#{s.version}",
+    'rubygems_mfa_required' => 'true',
     'source_code_uri' => "https://github.com/rgrove/crass/tree/v#{s.version}",
   }
 
