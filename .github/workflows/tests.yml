@@ -1,0 +1,28 @@
+name: Tests
+on: [ push, pull_request ]
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+        ruby:
+          - '1.9.3'
+          - '2.7'
+          - '3.0'
+          - jruby
+          - ruby
+          - ruby-head
+          - truffleruby
+          - truffleruby-head
+    continue-on-error: ${{ endsWith(matrix.ruby, 'head') }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          ruby-version: ${{ matrix.ruby }}
+      - run: bundle exec rake

@@ -2,8 +2,8 @@
 
 Crass is a Ruby CSS parser that's fully compliant with the [CSS Syntax Level 3](http://dev.w3.org/csswg/css-syntax/) specification.
 
-[![Build Status](https://travis-ci.org/rgrove/crass.svg?branch=master)](https://travis-ci.org/rgrove/crass)
 [![Gem Version](https://badge.fury.io/rb/crass.svg)](http://badge.fury.io/rb/crass)
+[![Tests](https://github.com/rgrove/crass/actions/workflows/tests.yml/badge.svg)](https://github.com/rgrove/crass/actions/workflows/tests.yml)
 
 ## Links
 
