@@ -1,64 +1,47 @@
-Crass
-=====
+# Crass
 
-Crass is a Ruby CSS parser that's fully compliant with the
-[CSS Syntax Level 3][css] specification.
-
-* [Home](https://github.com/rgrove/crass/)
-* [API Docs](http://rubydoc.info/github/rgrove/crass/master)
+Crass is a Ruby CSS parser that's fully compliant with the [CSS Syntax Level 3](http://dev.w3.org/csswg/css-syntax/) specification.
 
 [![Build Status](https://travis-ci.org/rgrove/crass.svg?branch=master)](https://travis-ci.org/rgrove/crass)
 [![Gem Version](https://badge.fury.io/rb/crass.svg)](http://badge.fury.io/rb/crass)
 
-Features
---------
+## Links
 
-* Pure Ruby, with no runtime dependencies other than Ruby 1.9.x or higher.
+- [Home](https://github.com/rgrove/crass/)
+- [API Docs](https://rubydoc.info/github/rgrove/crass/Crass)
 
-* Tokenizes and parses CSS according to the rules defined in the 14 November
-  2014 editor's draft of the [CSS Syntax Level 3][css] specification.
 
-* Extremely tolerant of broken or invalid CSS. If a browser can handle it, Crass
-  should be able to handle it too.
+## Features
 
-* Optionally includes comments in the token stream.
+- Pure Ruby, with no runtime dependencies other than Ruby 1.9.x or higher.
 
-* Optionally preserves certain CSS hacks, such as the IE "*" hack, which would
-  otherwise be discarded according to CSS3 tokenizing rules.
+- Tokenizes and parses CSS according to the rules defined in the 14 November 2014 editor's draft of the [CSS Syntax Level 3](http://dev.w3.org/csswg/css-syntax/) specification.
 
-* Capable of serializing the parse tree back to CSS while maintaining all
-  original whitespace, comments, and indentation.
+- Extremely tolerant of broken or invalid CSS. If a browser can handle it, Crass should be able to handle it too.
 
-[css]: http://dev.w3.org/csswg/css-syntax/
+- Optionally includes comments in the token stream.
 
-Problems
---------
+- Optionally preserves certain CSS hacks, such as the IE "*" hack, which would otherwise be discarded according to CSS3 tokenizing rules.
 
-* Crass isn't terribly fast. I mean, it's Ruby, and it's not really slow by Ruby
-  standards. But compared to the CSS parser in your average browser? Yeah, it's
-  slow.
+- Capable of serializing the parse tree back to CSS while maintaining all original whitespace, comments, and indentation.
 
-* Crass only parses the CSS syntax; it doesn't understand what any of it means,
-  doesn't coalesce selectors, etc. You can do this yourself by consuming the
-  parse tree, though.
+## Problems
 
-* While any node in the parse tree (or the parse tree as a whole) can be
-  serialized back to CSS with perfect fidelity, changes made to those nodes
-  (except for wholesale removal of nodes) are not reflected in the serialized
-  output.
+- Crass isn't terribly fast. I mean, it's Ruby, and it's not really slow by Ruby standards. But compared to the CSS parser in your average browser? Yeah, it's slow.
 
-* Crass only supports UTF-8 input and doesn't respect `@charset` rules. Input in
-  any other encoding will be converted to UTF-8.
+- Crass only parses the CSS syntax; it doesn't understand what any of it means, doesn't coalesce selectors, etc. You can do this yourself by consuming the parse tree, though.
 
-Installing
-----------
+- While any node in the parse tree (or the parse tree as a whole) can be serialized back to CSS with perfect fidelity, changes made to those nodes (except for wholesale removal of nodes) are not reflected in the serialized output.
+
+- Crass only supports UTF-8 input and doesn't respect `@charset` rules. Input in any other encoding will be converted to UTF-8.
+
+## Installing
 
 ```
 gem install crass
 ```
 
-Examples
---------
+## Examples
 
 Say you have a string containing some CSS:
 
@@ -76,7 +59,7 @@ Parsing it is simple:
 tree = Crass.parse(css, :preserve_comments => true)
 ```
 
-This returns a big fat beautiful parse tree, which looks like this:
+This returns a big beautiful parse tree, which looks like this:
 
 ```ruby
 [{:node=>:comment, :pos=>0, :raw=>"/* Comment! */", :value=>" Comment! "},
@@ -151,42 +134,20 @@ a:hover {
 
 Wasn't that exciting?
 
-A Note on Versioning
---------------------
+## Versioning
 
-As of version 1.0.0, Crass adheres strictly to [SemVer 2.0][semver].
+As of version 1.0.0, Crass adheres strictly to [SemVer 2.0](http://semver.org/spec/v2.0.0.html).
 
-[semver]:http://semver.org/spec/v2.0.0.html
+## Contributing
 
-Contributing
-------------
+The best way to contribute is to use Crass and [create issues](https://github.com/rgrove/crass/issues/new) when you run into problems.
 
-The best way to contribute is to use Crass and [create issues][issue] when you
-run into problems.
+Pull requests that fix bugs are more than welcome as long as they include tests. Please adhere to the style and format of the surrounding code, or I might ask you to change things.
 
-Pull requests that fix bugs are more than welcome as long as they include tests.
-Please adhere to the style and format of the surrounding code, or I might ask
-you to change things.
+If you want to add a feature or refactor something, please get in touch first to make sure I'm on board with your idea and approach; I'm pretty picky, and I'd hate to have to turn down a pull request you spent a lot of time on.
 
-If you want to add a feature or refactor something, please get in touch first to
-make sure I'm on board with your idea and approach; I'm pretty picky, and I'd
-hate to have to turn down a pull request you spent a lot of time on.
+## Acknowledgments
 
-[issue]: https://github.com/rgrove/crass/issues/new
+I'm deeply grateful to [Simon Sapin](http://exyr.org/about/) for his wonderfully comprehensive [CSS parsing tests](https://github.com/SimonSapin/css-parsing-tests/), which I adapted to create many of Crass's tests. They've been invaluable in helping me fix bugs and handle weird edge cases, and Crass would be much crappier without them.
 
-Acknowledgments
----------------
-
-I'm deeply, deeply grateful to [Simon Sapin][simon] for his wonderfully
-comprehensive [CSS parsing tests][css-tests], which I adapted to create many of
-Crass's tests. They've been invaluable in helping me fix bugs and handle weird
-edge cases, and Crass would be much crappier without them.
-
-I'm also grateful to [Tab Atkins Jr.][tab] and Simon Sapin (again!) for their
-work on the [CSS Syntax Level 3][spec] specification, which defines the
-tokenizing and parsing rules that Crass implements.
-
-[css-tests]:https://github.com/SimonSapin/css-parsing-tests/
-[simon]:http://exyr.org/about/
-[spec]:http://www.w3.org/TR/css-syntax-3/
-[tab]:http://www.xanthir.com/contact/
+I'm also grateful to [Tab Atkins-Bittner](https://www.xanthir.com/contact/) and Simon Sapin (again!) for their work on the [CSS Syntax Level 3](http://www.w3.org/TR/css-syntax-3/) specification, which defines the tokenizing and parsing rules that Crass implements.
