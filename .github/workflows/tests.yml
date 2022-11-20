@@ -9,14 +9,11 @@ jobs:
           - ubuntu-latest
           - macos-latest
         ruby:
-          - '1.9.3'
           - '2.7'
           - '3.0'
           - jruby
           - ruby
           - ruby-head
-          - truffleruby
-          - truffleruby-head
     continue-on-error: ${{ endsWith(matrix.ruby, 'head') }}
     runs-on: ${{ matrix.os }}
     steps:
