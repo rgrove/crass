@@ -7,24 +7,24 @@ require_relative '../../lib/crass'
 CP = Crass::Parser
 CT = Crass::Tokenizer
 
-# Hack shared test support into MiniTest.
-MiniTest::Spec.class_eval do
+# Hack shared test support into Minitest.
+Minitest::Spec.class_eval do
   def self.shared_tests
     @shared_tests ||= {}
   end
 end
 
-module MiniTest::Spec::SharedTests
+module Minitest::Spec::SharedTests
   def behaves_like(desc)
-    self.instance_eval(&MiniTest::Spec.shared_tests[desc])
+    self.instance_eval(&Minitest::Spec.shared_tests[desc])
   end
 
   def shared_tests_for(desc, &block)
-    MiniTest::Spec.shared_tests[desc] = block
+    Minitest::Spec.shared_tests[desc] = block
   end
 end
 
-Object.class_eval { include MiniTest::Spec::SharedTests }
+Object.class_eval { include Minitest::Spec::SharedTests }
 
 # Custom assertions and helpers.
 def assert_tokens(input, actual, offset = 0, options = {})
