@@ -6,7 +6,7 @@ module Crass
 
   # Parses a CSS string or list of tokens.
   #
-  # 5. http://dev.w3.org/csswg/css-syntax/#parsing
+  # 5. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parsing
   class Parser
     BLOCK_END_TOKENS = {
       :'{' => :'}',
@@ -21,7 +21,7 @@ module Crass
     #
     # See {Tokenizer#initialize} for _options_.
     #
-    # 5.3.6. http://dev.w3.org/csswg/css-syntax/#parse-a-list-of-declarations
+    # 5.3.6. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-list-of-declarations
     def self.parse_properties(input, options = {})
       Parser.new(input, options).parse_properties
     end
@@ -32,7 +32,7 @@ module Crass
     #
     # See {Tokenizer#initialize} for _options_.
     #
-    # 5.3.3. http://dev.w3.org/csswg/css-syntax/#parse-a-list-of-rules
+    # 5.3.3. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-list-of-rules
     def self.parse_rules(input, options = {})
       parser = Parser.new(input, options)
       rules  = parser.consume_rules
@@ -50,7 +50,7 @@ module Crass
     #
     # See {Tokenizer#initialize} for _options_.
     #
-    # 5.3.2. http://dev.w3.org/csswg/css-syntax/#parse-a-stylesheet
+    # 5.3.2. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-stylesheet
     def self.parse_stylesheet(input, options = {})
       parser = Parser.new(input, options)
       rules  = parser.consume_rules(:top_level => true)
@@ -133,7 +133,7 @@ module Crass
 
     # Consumes an at-rule and returns it.
     #
-    # 5.4.2. http://dev.w3.org/csswg/css-syntax-3/#consume-at-rule
+    # 5.4.2. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-at-rule
     def consume_at_rule(input = @tokens)
       rule = {}
 
@@ -180,7 +180,7 @@ module Crass
     # Consumes a component value and returns it, or `nil` if there are no more
     # tokens.
     #
-    # 5.4.6. http://dev.w3.org/csswg/css-syntax-3/#consume-a-component-value
+    # 5.4.6. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-component-value
     def consume_component_value(input = @tokens)
       return nil unless token = input.consume
 
@@ -205,7 +205,7 @@ module Crass
 
     # Consumes a declaration and returns it, or `nil` on parse error.
     #
-    # 5.4.5. http://dev.w3.org/csswg/css-syntax-3/#consume-a-declaration
+    # 5.4.5. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-declaration
     def consume_declaration(input = @tokens)
       declaration = {}
       value       = []
@@ -272,7 +272,7 @@ module Crass
     #   * **:strict** - Set to `true` to exclude non-standard `:comment`,
     #     `:semicolon`, and `:whitespace` nodes.
     #
-    # 5.4.4. http://dev.w3.org/csswg/css-syntax/#consume-a-list-of-declarations
+    # 5.4.4. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-list-of-declarations
     def consume_declarations(input = @tokens, options = {})
       declarations = []
 
@@ -322,7 +322,7 @@ module Crass
 
     # Consumes a function and returns it.
     #
-    # 5.4.8. http://dev.w3.org/csswg/css-syntax-3/#consume-a-function
+    # 5.4.8. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-function
     def consume_function(input = @tokens)
       function = {
         :name   => input.current[:value],
@@ -353,7 +353,7 @@ module Crass
     # Consumes a qualified rule and returns it, or `nil` if a parse error
     # occurs.
     #
-    # 5.4.3. http://dev.w3.org/csswg/css-syntax-3/#consume-a-qualified-rule
+    # 5.4.3. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-qualified-rule
     def consume_qualified_rule(input = @tokens)
       rule = {:prelude => []}
 
@@ -394,7 +394,7 @@ module Crass
 
     # Consumes a list of rules and returns them.
     #
-    # 5.4.1. http://dev.w3.org/csswg/css-syntax/#consume-a-list-of-rules
+    # 5.4.1. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-list-of-rules
     def consume_rules(flags = {})
       rules = []
 
@@ -430,7 +430,7 @@ module Crass
     # Consumes and returns a simple block associated with the current input
     # token.
     #
-    # 5.4.7. http://dev.w3.org/csswg/css-syntax/#consume-a-simple-block
+    # 5.4.7. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-simple-block
     def consume_simple_block(input = @tokens)
       start_token = input.current[:node]
       end_token   = BLOCK_END_TOKENS[start_token]
@@ -479,7 +479,7 @@ module Crass
 
     # Parses a single component value and returns it.
     #
-    # 5.3.7. http://dev.w3.org/csswg/css-syntax-3/#parse-a-component-value
+    # 5.3.7. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-component-value
     def parse_component_value(input = @tokens)
       input = TokenScanner.new(input) unless input.is_a?(TokenScanner)
 
@@ -506,7 +506,7 @@ module Crass
 
     # Parses a list of component values and returns an array of parsed tokens.
     #
-    # 5.3.8. http://dev.w3.org/csswg/css-syntax/#parse-a-list-of-component-values
+    # 5.3.8. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-list-of-component-values
     def parse_component_values(input = @tokens)
       input  = TokenScanner.new(input) unless input.is_a?(TokenScanner)
       tokens = []
@@ -520,7 +520,7 @@ module Crass
 
     # Parses a single declaration and returns it.
     #
-    # 5.3.5. http://dev.w3.org/csswg/css-syntax/#parse-a-declaration
+    # 5.3.5. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-declaration
     def parse_declaration(input = @tokens)
       input = TokenScanner.new(input) unless input.is_a?(TokenScanner)
 
@@ -548,7 +548,7 @@ module Crass
     #
     # See {#consume_declarations} for _options_.
     #
-    # 5.3.6. http://dev.w3.org/csswg/css-syntax/#parse-a-list-of-declarations
+    # 5.3.6. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-list-of-declarations
     def parse_declarations(input = @tokens, options = {})
       input = TokenScanner.new(input) unless input.is_a?(TokenScanner)
       consume_declarations(input, options)
@@ -582,7 +582,7 @@ module Crass
 
     # Parses a single rule and returns it.
     #
-    # 5.3.4. http://dev.w3.org/csswg/css-syntax-3/#parse-a-rule
+    # 5.3.4. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-rule
     def parse_rule(input = @tokens)
       input = TokenScanner.new(input) unless input.is_a?(TokenScanner)
 
