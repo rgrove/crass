@@ -23,7 +23,7 @@ describe 'CSS Parsing Tests' do
       css      = test[0]
       expected = test[1]
 
-      it "should parse: #{css.gsub("\n", "\\n")}" do
+      it "should parse: #{css.gsub("\n", "\\n").inspect}" do
         parser = Crass::Parser.new(css)
         assert_equal(expected, translate_tokens(parser.parse_component_values))
       end
@@ -40,7 +40,7 @@ describe 'CSS Parsing Tests' do
       css      = test[0]
       expected = test[1]
 
-      it "should parse: #{css.gsub("\n", "\\n")}" do
+      it "should parse: #{css.gsub("\n", "\\n").inspect}" do
         parser = Crass::Parser.new(css)
         assert_equal(expected, translate_tokens(parser.parse_declarations(parser.tokens, {:strict => true})))
       end
@@ -57,7 +57,7 @@ describe 'CSS Parsing Tests' do
       css      = test[0]
       expected = test[1]
 
-      it "should parse: #{css.gsub("\n", "\\n")}" do
+      it "should parse: #{css.gsub("\n", "\\n").inspect}" do
         parser = Crass::Parser.new(css)
         assert_equal(expected, translate_tokens(parser.parse_component_value)[0])
       end
@@ -74,7 +74,7 @@ describe 'CSS Parsing Tests' do
       css      = test[0]
       expected = test[1]
 
-      it "should parse: #{css.gsub("\n", "\\n")}" do
+      it "should parse: #{css.gsub("\n", "\\n").inspect}" do
         parser = Crass::Parser.new(css)
         assert_equal(expected, translate_tokens(parser.parse_declaration)[0])
       end
@@ -91,7 +91,7 @@ describe 'CSS Parsing Tests' do
       css      = test[0]
       expected = test[1]
 
-      it "should parse: #{css.gsub("\n", "\\n")}" do
+      it "should parse: #{css.gsub("\n", "\\n").inspect}" do
         parser = Crass::Parser.new(css)
         assert_equal(expected, translate_tokens(parser.parse_rule)[0])
       end
@@ -108,7 +108,7 @@ describe 'CSS Parsing Tests' do
       css      = test[0]
       expected = test[1]
 
-      it "should parse: #{css.gsub("\n", "\\n")}" do
+      it "should parse: #{css.gsub("\n", "\\n").inspect}" do
         parser = Crass::Parser.new(css)
         rules  = parser.consume_rules
 
@@ -133,7 +133,7 @@ describe 'CSS Parsing Tests' do
       css      = test[0]
       expected = test[1]
 
-      it "should parse: #{css.gsub("\n", "\\n")}" do
+      it "should parse: #{css.gsub("\n", "\\n").inspect}" do
         parser = Crass::Parser.new(css)
         rules  = parser.consume_rules(:top_level => true)
 

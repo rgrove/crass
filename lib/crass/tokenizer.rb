@@ -5,7 +5,7 @@ module Crass
 
   # Tokenizes a CSS string.
   #
-  # 4. http://dev.w3.org/csswg/css-syntax/#tokenization
+  # 4. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#tokenization
   class Tokenizer
     RE_COMMENT_CLOSE   = /\*\//
     RE_DIGIT           = /[0-9]+/
@@ -66,7 +66,7 @@ module Crass
 
     # Consumes a token and returns the token that was consumed.
     #
-    # 4.3.1. http://dev.w3.org/csswg/css-syntax/#consume-a-token
+    # 4.3.1. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-token
     def consume
       return nil if @s.eos?
 
@@ -271,7 +271,7 @@ module Crass
 
     # Consumes the remnants of a bad URL and returns the consumed text.
     #
-    # 4.3.15. http://dev.w3.org/csswg/css-syntax/#consume-the-remnants-of-a-bad-url
+    # 4.3.15. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-the-remnants-of-a-bad-url
     def consume_bad_url
       text = String.new
 
@@ -297,7 +297,7 @@ module Crass
 
     # Consumes comments and returns them, or `nil` if no comments were consumed.
     #
-    # 4.3.2. http://dev.w3.org/csswg/css-syntax/#consume-comments
+    # 4.3.2. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-comments
     def consume_comments
       if @s.peek(2) == '/*'
         @s.consume
@@ -322,7 +322,7 @@ module Crass
     # next character in the input has already been verified not to be a newline
     # or EOF.
     #
-    # 4.3.8. http://dev.w3.org/csswg/css-syntax/#consume-an-escaped-code-point
+    # 4.3.8. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-an-escaped-code-point
     def consume_escaped
       return "\ufffd" if @s.eos?
 
@@ -346,7 +346,7 @@ module Crass
 
     # Consumes an ident-like token and returns it.
     #
-    # 4.3.4. http://dev.w3.org/csswg/css-syntax/#consume-an-ident-like-token
+    # 4.3.4. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-an-ident-like-token
     def consume_ident
       value = consume_name
 
@@ -371,7 +371,7 @@ module Crass
 
     # Consumes a name and returns it.
     #
-    # 4.3.12. http://dev.w3.org/csswg/css-syntax/#consume-a-name
+    # 4.3.12. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-name
     def consume_name
       result = String.new
 
@@ -403,7 +403,7 @@ module Crass
     # original representation, its numeric value, and its type (either
     # `:integer` or `:number`).
     #
-    # 4.3.13. http://dev.w3.org/csswg/css-syntax/#consume-a-number
+    # 4.3.13. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-number
     def consume_number
       repr = String.new
       type = :integer
@@ -426,7 +426,7 @@ module Crass
 
     # Consumes a numeric token and returns it.
     #
-    # 4.3.3. http://dev.w3.org/csswg/css-syntax/#consume-a-numeric-token
+    # 4.3.3. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-numeric-token
     def consume_numeric
       number = consume_number
       repr = number[0]
@@ -465,7 +465,7 @@ module Crass
     # Consumes a string token that ends at the given character, and returns the
     # token.
     #
-    # 4.3.5. http://dev.w3.org/csswg/css-syntax/#consume-a-string-token
+    # 4.3.5. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-string-token
     def consume_string(ending = nil)
       ending = @s.current if ending.nil?
       value  = String.new
@@ -506,7 +506,7 @@ module Crass
     # Consumes a Unicode range token and returns it. Assumes the initial "u+" or
     # "U+" has already been consumed.
     #
-    # 4.3.7. http://dev.w3.org/csswg/css-syntax/#consume-a-unicode-range-token
+    # 4.3.7. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-unicode-range-token
     def consume_unicode_range
       value = @s.scan(RE_HEX) || String.new
 
@@ -538,7 +538,7 @@ module Crass
     # Consumes a URL token and returns it. Assumes the original "url(" has
     # already been consumed.
     #
-    # 4.3.6. http://dev.w3.org/csswg/css-syntax/#consume-a-url-token
+    # 4.3.6. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-url-token
     def consume_url
       value = String.new
 
@@ -586,7 +586,7 @@ module Crass
 
     # Converts a valid CSS number string into a number and returns the number.
     #
-    # 4.3.14. http://dev.w3.org/csswg/css-syntax/#convert-a-string-to-a-number
+    # 4.3.14. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#convert-a-string-to-a-number
     def convert_string_to_number(str)
       matches = RE_NUMBER_STR.match(str)
 
@@ -623,7 +623,7 @@ module Crass
 
     # Preprocesses _input_ to prepare it for the tokenizer.
     #
-    # 3.3. http://dev.w3.org/csswg/css-syntax/#input-preprocessing
+    # 3.3. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#input-preprocessing
     def preprocess(input)
       input = input.to_s.encode('UTF-8',
         :invalid => :replace,
@@ -638,7 +638,7 @@ module Crass
     # identifier. If _text_ is `nil`, the current and next two characters in the
     # input stream will be checked, but will not be consumed.
     #
-    # 4.3.10. http://dev.w3.org/csswg/css-syntax/#would-start-an-identifier
+    # 4.3.10. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#would-start-an-identifier
     def start_identifier?(text = nil)
       text = @s.current + @s.peek(2) if text.nil?
 
@@ -662,7 +662,7 @@ module Crass
     # If _text_ is `nil`, the current and next two characters in the input
     # stream will be checked, but will not be consumed.
     #
-    # 4.3.11. http://dev.w3.org/csswg/css-syntax/#starts-with-a-number
+    # 4.3.11. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#starts-with-a-number
     def start_number?(text = nil)
       text = @s.current + @s.peek(2) if text.nil?
 
@@ -698,7 +698,7 @@ module Crass
     # valid escape sequence. If _text_ is `nil`, the current and next character
     # in the input stream will be checked, but will not be consumed.
     #
-    # 4.3.9. http://dev.w3.org/csswg/css-syntax/#starts-with-a-valid-escape
+    # 4.3.9. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#starts-with-a-valid-escape
     def valid_escape?(text = nil)
       text = @s.current + @s.peek if text.nil?
       !!(text[0] == '\\' && text[1] != "\n")
