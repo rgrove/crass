@@ -27,6 +27,6 @@ Gem::Specification.new do |s|
   s.files = `git ls-files -z`.split("\x0").grep_v(%r{^test/})
 
   # Development dependencies.
-  s.add_development_dependency 'minitest', '~> 5.21.1'
-  s.add_development_dependency 'rake', '~> 13.0.6'
+  s.add_development_dependency 'minitest', '~> 6.0.6'
+  s.add_development_dependency 'rake', '~> 13.4.2'
 end
