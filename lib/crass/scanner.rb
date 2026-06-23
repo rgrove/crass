@@ -16,6 +16,10 @@ module Crass
 
     # Position of the next character that will be consumed. This is a character
     # position, not a byte position, so it accounts for multi-byte characters.
+    #
+    # Byte offsets (used internally for fast substring extraction) are tracked
+    # separately by the underlying StringScanner, whose `pos` always reflects
+    # the byte offset corresponding to this character position.
     attr_accessor :pos
 
     # String being scanned.
@@ -46,6 +50,11 @@ module Crass
     def consume_rest
       result = @scanner.rest
 
+      # `StringScanner#rest` does not advance the scan pointer, so move it to
+      # the end of the input to keep the byte offset in sync with {#pos}. This
+      # ensures a subsequent {#marked} extracts the correct substring.
+      @scanner.terminate
+
       @current = result[-1]
       @pos     = @len
 
@@ -61,24 +70,31 @@ module Crass
     # Sets the marker to the position of the next character that will be
     # consumed.
     def mark
-      @marker = @pos
+      @byte_marker = @scanner.pos
+      @marker      = @pos
     end
 
     # Returns the substring between {#marker} and {#pos}, without altering the
     # pointer.
     def marked
-      if result = @string[@marker, @pos - @marker]
-        result
-      else
-        ''
-      end
+      # Extract the marked text using byte offsets rather than character
+      # offsets. Slicing the original string by character offset is O(n) on
+      # multi-byte input (Ruby must translate the character index into a byte
+      # index), which makes tokenizing non-ASCII input superlinear. Byte slicing
+      # is O(length) regardless of how far into the string we are.
+      @string.byteslice(@byte_marker, @scanner.pos - @byte_marker) || ''
     end
 
     # Returns up to _length_ characters starting at the current position, but
     # doesn't consume them. The number of characters returned may be less than
     # _length_ if the end of the string is reached.
     def peek(length = 1)
-      @string[pos, length]
+      # Grab the bytes for up to _length_ characters and then take the first
+      # _length_ characters. A UTF-8 character is at most four bytes, so `length
+      # * 4` bytes always contains at least _length_ whole characters when that
+      # many remain. This avoids the O(n) character-offset slice that
+      # `@string[pos, length]` would otherwise perform on multi-byte input.
+      @string.byteslice(@scanner.pos, length * 4).slice(0, length) || ''
     end
 
     # Moves the pointer back one character without changing the value of
@@ -91,10 +107,13 @@ module Crass
 
     # Resets the pointer to the beginning of the string.
     def reset
-      @current = nil
-      @len     = @string.size
-      @marker  = 0
-      @pos     = 0
+      @scanner.reset
+
+      @byte_marker = 0
+      @current     = nil
+      @len         = @string.size
+      @marker      = 0
+      @pos         = 0
     end
 
     # Tries to match _pattern_ at the current position. If it matches, the
