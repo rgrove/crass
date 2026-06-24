@@ -1,5 +1,9 @@
 # Crass Changelog
 
+## 1.0.7 (unreleased)
+
+- High: Fixed a denial of service vulnerability in which a large numeric exponent could consume disproportionate CPU and memory before the value was clamped. Exponents are now bounded before `10**exponent` is computed. (GHSA-6wmf-3r64-vcwv)
+
 ## 1.0.6 (2020-01-12)
 
 - Number values are now limited to a maximum of `Float::MAX` and a minimum of negative `Float::MAX`. (#11)

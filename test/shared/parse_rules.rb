@@ -395,6 +395,48 @@ shared_tests_for 'parsing a list of rules' do
     ], tree)
   end
 
+  # Compact numeric exponents must not trigger unbounded exponentiation, which
+  # could otherwise be abused for CPU and memory denial of service from tiny
+  # inputs such as "1e5000000px". The token value is clamped without ever
+  # computing `10**exponent`.
+  #
+  # The exponents below (1e10) sit above Ruby's own exponentiation guard, so on
+  # unpatched code (Ruby >= 3.4) `10**exponent` raises
+  # `ArgumentError: exponent is too large`. These tests therefore fail loudly
+  # without the fix and pass instantly with it.
+  it 'should saturate a huge positive exponent to `Float::MAX` without exponentiation' do
+    tokens = CT.tokenize("1e10000000000px")
+    assert_equal(:dimension, tokens[0][:node])
+    assert_equal(Float::MAX, tokens[0][:value])
+  end
+
+  it 'should saturate a huge negative magnitude to `-Float::MAX` without exponentiation' do
+    tokens = CT.tokenize("-5e10000000000")
+    assert_equal(:number, tokens[0][:node])
+    assert_equal(-Float::MAX, tokens[0][:value])
+  end
+
+  it 'should underflow a huge negative exponent to zero without exponentiation' do
+    tokens = CT.tokenize("1e-10000000000px")
+    assert_equal(:dimension, tokens[0][:node])
+    assert_equal(0.0, tokens[0][:value])
+  end
+
+  it 'should return zero for a zero mantissa with a huge exponent' do
+    tokens = CT.tokenize("0e10000000000")
+    assert_equal(:number, tokens[0][:node])
+    assert_equal(0.0, tokens[0][:value])
+  end
+
+  it 'should parse a compact exponent payload through the public API without exponentiation' do
+    tree = Crass.parse_properties("width:1e10000000000px")
+
+    property = tree.find {|node| node[:node] == :property }
+    dimension = property[:children].find {|node| node[:node] == :dimension }
+
+    assert_equal(Float::MAX, dimension[:value])
+  end
+
   # https://github.com/rgrove/crass/issues/10
   it 'should parse a class selector that looks like an exponent' do
     tree = parse("p.5e1367490fa5f06927cafe55msonormal {}")

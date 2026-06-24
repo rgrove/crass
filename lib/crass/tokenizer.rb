@@ -597,16 +597,42 @@ module Crass
       t = matches[:exponent_sign] == '-' ? -1 : 1
       e = matches[:exponent].to_i
 
-      # I know this formula looks nutty, but it's exactly what's defined in the
-      # spec, and it works.
-      value = s * (i + f * 10**-d) * 10**(t * e)
+      exponent = t * e
 
-      # Maximum and minimum values aren't defined in the spec, but are enforced
-      # here for sanity.
-      if value > Float::MAX
-        value = Float::MAX
-      elsif value < -Float::MAX
-        value = -Float::MAX
+      # Guard against denial of service via attacker-controlled exponentiation.
+      # A tiny input like "1e5000000" would otherwise force Ruby to compute
+      # `10**exponent` (an enormous integer) before the value is clamped below,
+      # consuming disproportionate CPU and memory. When the exponent's magnitude
+      # is far outside the range a finite double can represent, we saturate or
+      # underflow without performing the exponentiation.
+      if i == 0 && f == 0
+        # The mantissa is zero, so the value is zero regardless of the exponent.
+        value = s * 0.0
+
+      elsif exponent - d > Float::MAX_10_EXP + 1
+        # The value is larger than `Float::MAX` and would be clamped anyway.
+        value = s * Float::MAX
+
+      elsif exponent + matches[:integer].length < -325
+        # The value is smaller than the smallest representable double and would
+        # round to zero. (-325 is one less than the smallest subnormal base-10
+        # exponent of roughly -324; `matches[:integer].length` is an upper bound
+        # on the mantissa's magnitude, ensuring we never zero a representable
+        # value.)
+        value = s * 0.0
+
+      else
+        # I know this formula looks nutty, but it's exactly what's defined in
+        # the spec, and it works.
+        value = s * (i + f * 10**-d) * 10**exponent
+
+        # Maximum and minimum values aren't defined in the spec, but are
+        # enforced here for sanity.
+        if value > Float::MAX
+          value = Float::MAX
+        elsif value < -Float::MAX
+          value = -Float::MAX
+        end
       end
 
       value
