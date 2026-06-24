@@ -6,6 +6,8 @@
 
 - Moderate: Fixed a scenario in which deeply nested simple blocks or functions could exhaust the Ruby stack and raise `SystemStackError`, or could result in excessive memory usage. Parser nesting is now limited to a configurable maximum depth via a new option (`:maximum_depth`, with a conservative default of 25). Constructs nested more deeply are discarded as an `:error` node with the value "maximum-depth-exceeded". (GHSA-6jxj-px6v-747w)
 
+- Moderate: Fixed a scenario in which a long run of adjacent comments could exhaust the Ruby stack and raise `SystemStackError`. Discarded comments are now skipped iteratively rather than recursively. (GHSA-wwpr-jff3-395c)
+
 ## 1.0.6 (2020-01-12)
 
 - Number values are now limited to a maximum of `Float::MAX` and a minimum of negative `Float::MAX`. (#11)

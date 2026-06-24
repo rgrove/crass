@@ -68,17 +68,18 @@ module Crass
     #
     # 4.3.1. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-token
     def consume
-      return nil if @s.eos?
+      # Skip over any comments. When comments aren't being preserved this is
+      # done iteratively rather than recursively so that a long run of adjacent
+      # comments can't exhaust the Ruby stack and raise a `SystemStackError`.
+      loop do
+        return nil if @s.eos?
 
-      @s.mark
+        @s.mark
 
-      # Consume comments.
-      if comment_token = consume_comments
-        if @options[:preserve_comments]
-          return comment_token
-        else
-          return consume
-        end
+        comment_token = consume_comments
+        break unless comment_token
+
+        return comment_token if @options[:preserve_comments]
       end
 
       # Consume whitespace.
