@@ -4,6 +4,8 @@
 
 - High: Fixed a denial of service vulnerability in which a large numeric exponent could consume disproportionate CPU and memory before the value was clamped. Exponents are now bounded before `10**exponent` is computed. (GHSA-6wmf-3r64-vcwv)
 
+- Moderate: Fixed a scenario in which deeply nested simple blocks or functions could exhaust the Ruby stack and raise `SystemStackError`, or could result in excessive memory usage. Parser nesting is now limited to a configurable maximum depth via a new option (`:maximum_depth`, with a conservative default of 25). Constructs nested more deeply are discarded as an `:error` node with the value "maximum-depth-exceeded". (GHSA-6jxj-px6v-747w)
+
 ## 1.0.6 (2020-01-12)
 
 - Number values are now limited to a maximum of `Float::MAX` and a minimum of negative `Float::MAX`. (#11)

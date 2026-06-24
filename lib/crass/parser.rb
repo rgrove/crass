@@ -14,12 +14,26 @@ module Crass
       :'(' => :')'
     }
 
+    # Default maximum nesting depth for simple blocks and functions. This is far
+    # higher than any legitimate CSS needs, but far below the depth at which
+    # Ruby would raise `SystemStackError` while recursively parsing nested
+    # constructs.
+    #
+    # Keeping this low also bounds memory usage: each nested simple block and
+    # function retains a `:tokens` array spanning its descendants for
+    # serialization, so the total serialization metadata grows with nesting
+    # depth. A modest limit prevents deeply nested (but otherwise valid) input
+    # from amplifying memory disproportionately.
+    #
+    # It can be overridden with the `:maximum_depth` option.
+    DEFAULT_MAXIMUM_DEPTH = 25
+
     # -- Class Methods ---------------------------------------------------------
 
     # Parses CSS properties (such as the contents of an HTML element's `style`
     # attribute) and returns a parse tree.
     #
-    # See {Tokenizer#initialize} for _options_.
+    # See {Crass.parse} for _options_.
     #
     # 5.3.6. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-list-of-declarations
     def self.parse_properties(input, options = {})
@@ -30,7 +44,7 @@ module Crass
     # parse tree. The only difference from {parse_stylesheet} is that CDO/CDC
     # nodes (`<!--` and `-->`) aren't ignored.
     #
-    # See {Tokenizer#initialize} for _options_.
+    # See {Crass.parse} for _options_.
     #
     # 5.3.3. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-list-of-rules
     def self.parse_rules(input, options = {})
@@ -48,7 +62,7 @@ module Crass
 
     # Parses a CSS stylesheet and returns a parse tree.
     #
-    # See {Tokenizer#initialize} for _options_.
+    # See {Crass.parse} for _options_.
     #
     # 5.3.2. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#parse-a-stylesheet
     def self.parse_stylesheet(input, options = {})
@@ -122,12 +136,14 @@ module Crass
     # Initializes a parser based on the given _input_, which may be a CSS string
     # or an array of tokens.
     #
-    # See {Tokenizer#initialize} for _options_.
+    # See {Crass.parse} for _options_.
     def initialize(input, options = {})
       unless input.kind_of?(Enumerable)
         input = Tokenizer.tokenize(input, options)
       end
 
+      @depth = 0
+      @maximum_depth = options[:maximum_depth] || DEFAULT_MAXIMUM_DEPTH
       @tokens = TokenScanner.new(input)
     end
 
@@ -324,30 +340,40 @@ module Crass
     #
     # 5.4.8. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-function
     def consume_function(input = @tokens)
-      function = {
-        :name   => input.current[:value],
-        :value  => [],
-        :tokens => [input.current] # Non-standard, used for serialization.
-      }
+      @depth += 1
 
-      function[:tokens].concat(input.collect {
-        while token = input.consume
-          case token[:node]
-          when :')'
-            break
+      begin
+        # Discard functions nested more deeply than the maximum allowed depth to
+        # avoid exhausting the Ruby stack on maliciously nested input.
+        return discard_block(input) if @depth > @maximum_depth
 
-          # Non-standard.
-          when :comment
-            next
+        function = {
+          :name   => input.current[:value],
+          :value  => [],
+          :tokens => [input.current] # Non-standard, used for serialization.
+        }
 
-          else
-            input.reconsume
-            function[:value] << consume_component_value(input)
+        function[:tokens].concat(input.collect {
+          while token = input.consume
+            case token[:node]
+            when :')'
+              break
+
+            # Non-standard.
+            when :comment
+              next
+
+            else
+              input.reconsume
+              function[:value] << consume_component_value(input)
+            end
           end
-        end
-      })
+        })
 
-      create_node(:function, function)
+        create_node(:function, function)
+      ensure
+        @depth -= 1
+      end
     end
 
     # Consumes a qualified rule and returns it, or `nil` if a parse error
@@ -432,26 +458,68 @@ module Crass
     #
     # 5.4.7. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-a-simple-block
     def consume_simple_block(input = @tokens)
-      start_token = input.current[:node]
-      end_token   = BLOCK_END_TOKENS[start_token]
+      @depth += 1
 
-      block = {
-        :start  => start_token.to_s,
-        :end    => end_token.to_s,
-        :value  => [],
-        :tokens => [input.current] # Non-standard. Used for serialization.
-      }
+      begin
+        # Discard blocks nested more deeply than the maximum allowed depth to
+        # avoid exhausting the Ruby stack on maliciously nested input.
+        return discard_block(input) if @depth > @maximum_depth
 
-      block[:tokens].concat(input.collect do
-        while token = input.consume
-          break if token[:node] == end_token
+        start_token = input.current[:node]
+        end_token   = BLOCK_END_TOKENS[start_token]
 
-          input.reconsume
-          block[:value] << consume_component_value(input)
+        block = {
+          :start  => start_token.to_s,
+          :end    => end_token.to_s,
+          :value  => [],
+          :tokens => [input.current] # Non-standard. Used for serialization.
+        }
+
+        block[:tokens].concat(input.collect do
+          while token = input.consume
+            break if token[:node] == end_token
+
+            input.reconsume
+            block[:value] << consume_component_value(input)
+          end
+        end)
+
+        create_node(:simple_block, block)
+      ensure
+        @depth -= 1
+      end
+    end
+
+    # Discards an over-nested simple block or function without recursing, then
+    # returns an `:error` node. Assumes `input.current` is the opening token (a
+    # `{`, `[`, `(`, or function token).
+    #
+    # This is reached only when the configured maximum nesting depth is
+    # exceeded. It iteratively consumes tokens up to the matching closing token
+    # (tracking nested blocks and functions with an explicit stack) so that a
+    # deeply nested construct can't exhaust the Ruby stack.
+    def discard_block(input)
+      opening = input.current
+
+      stack = [opening[:node] == :function ? :')' : BLOCK_END_TOKENS[opening[:node]]]
+      tokens = [opening] # Non-standard. Used for serialization.
+
+      tokens.concat(input.collect do
+        until stack.empty?
+          break unless token = input.consume
+
+          case token[:node]
+          when :'{', :'[', :'('
+            stack.push(BLOCK_END_TOKENS[token[:node]])
+          when :function
+            stack.push(:')')
+          when stack.last
+            stack.pop
+          end
         end
       end)
 
-      create_node(:simple_block, block)
+      create_node(:error, :value => 'maximum-depth-exceeded', :tokens => tokens)
     end
 
     # Creates and returns a new parse node with the given _properties_.
