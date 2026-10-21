@@ -1,6 +1,6 @@
 # Crass Changelog
 
-## 1.0.8 (unreleased)
+## 1.0.8 (2026-10-21)
 
 ### Security
 
