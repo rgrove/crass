@@ -1,5 +1,11 @@
 # Crass Changelog
 
+## 1.0.8 (unreleased)
+
+### Security
+
+- Moderate: Fixed a tokenizer bug in which a `)` following an escaped backslash (`\\`) inside a bad URL didn't terminate the bad URL token, causing Crass to consume more input than a spec-compliant browser would. CSS sanitizers built on Crass could be tricked into passing through declarations, rules, or at-rules that a browser would then apply. (GHSA-pq4g-8rxf-4g29)
+
 ## 1.0.7 (2026-06-25)
 
 ### Security

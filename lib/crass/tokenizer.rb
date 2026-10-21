@@ -89,7 +89,7 @@ module Crass
 
       case char.to_sym
       when :'"'
-        consume_string
+        consume_string(char)
 
       when :'#'
         if @s.peek =~ RE_NAME || valid_escape?(@s.peek(2))
@@ -109,7 +109,7 @@ module Crass
         end
 
       when :"'"
-        consume_string
+        consume_string(char)
 
       when :'('
         create_token(:'(')
@@ -132,7 +132,7 @@ module Crass
         end
 
       when :+
-        if start_number?
+        if start_number?(char + @s.peek(2))
           @s.reconsume
           consume_numeric
         else
@@ -161,7 +161,7 @@ module Crass
         end
 
       when :'.'
-        if start_number?
+        if start_number?(char + @s.peek(2))
           @s.reconsume
           consume_numeric
         else
@@ -196,7 +196,7 @@ module Crass
         create_token(:'[')
 
       when :'\\'
-        if valid_escape?
+        if valid_escape?(char + @s.peek)
           @s.reconsume
           consume_ident
         else
@@ -277,9 +277,7 @@ module Crass
       text = String.new
 
       until @s.eos?
-        if valid_escape?
-          text << consume_escaped
-        elsif valid_escape?(@s.peek(2))
+        if valid_escape?(@s.peek(2))
           @s.consume
           text << consume_escaped
         else
@@ -320,8 +318,8 @@ module Crass
     # Consumes an escaped code point and returns its unescaped value.
     #
     # This method assumes that the `\` has already been consumed, and that the
-    # next character in the input has already been verified not to be a newline
-    # or EOF.
+    # next character in the input has already been verified not to be a
+    # newline. If the input is at EOF, U+FFFD is returned.
     #
     # 4.3.8. https://www.w3.org/TR/2013/WD-css-syntax-3-20130919/#consume-an-escaped-code-point
     def consume_escaped
@@ -384,7 +382,7 @@ module Crass
 
         char = @s.consume
 
-        if valid_escape?
+        if valid_escape?(char + @s.peek)
           result << consume_escaped
 
         # Non-standard: IE * hack
@@ -567,7 +565,7 @@ module Crass
             :value => value + consume_bad_url)
 
         when '\\'
-          if valid_escape?
+          if valid_escape?(char + @s.peek)
             value << consume_escaped
           else
             # Parse error.
