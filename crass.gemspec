@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
 
   s.require_paths = ['lib']
 
-  s.files = `git ls-files -z`.split("\x0").grep_v(%r{^test/})
+  s.files = `git ls-files -z lib HISTORY.md LICENSE README.md`.split("\x0")
 
   # Development dependencies.
   s.add_development_dependency 'minitest', '~> 6.0.6'
